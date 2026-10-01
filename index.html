@@ -2013,8 +2013,13 @@ function roomDefs() {
     add(u + '-3F-bath', u, 3, '浴室', [[ox + 10, ox + 295, r + 10, r + 165]], ['淋浴、洗手台、馬桶', '後牆 W5 小窗通風']);
     add(u + '-3F-living', u, 3, '起居室', [[ox + 305, ox + 595, r + 10, 587], [ox + 10, ox + 305, r + 175, 587]], ['家人共用的第二客廳', '正面兩扇 W1 採光', 'D2 通往梯廳']);
     add(u + '-3F-hall', u, 3, '梯廳', [[ox + 605, ox + 890, r + 10, 587]], ['D5 通往陽台與露台', '正面 W1 採光']);
-    add(u + '-3F-balcony', u, 3, '陽台', [[ox + 10, ox + 890, 607, 677]], ['上方有屋頂遮蓋，深 80 cm'], true);
-    add(u + '-3F-terrace', u, 3, '露台', [[ox + 10, ox + 890, 677, 877]], ['露天，四周 H110 女兒牆', '左側爬梯可上屋頂'], true);
+    if (u === 'A2') {
+      add('A2-3F-sunroom', u, 3, '玻璃屋（含陽台）', [[ox + 130, ox + 890, 607, 877]], ['西側玻璃立面，只有兩端是可開窗', '北側百葉窗、南側一樘橫拉窗，所有窗戶內側都有紗網', '北側西端 D5 尺寸門（門軸在西側）通往爬梯區', '玻璃屋頂在屋頂樓板下方，雨水由女兒牆滴落在玻璃上'], true);
+      add('A2-3F-terrace', u, 3, '露台（爬梯區）', [[ox + 10, ox + 120, 607, 877]], ['露天，爬梯可上屋頂', '經北側門進出玻璃屋'], true);
+    } else {
+      add(u + '-3F-balcony', u, 3, '陽台', [[ox + 10, ox + 890, 607, 677]], ['上方有屋頂遮蓋，深 80 cm'], true);
+      add(u + '-3F-terrace', u, 3, '露台', [[ox + 10, ox + 890, 677, 877]], ['露天，四周 H110 女兒牆', '左側爬梯可上屋頂'], true);
+    }
   });
   return R;
 }
@@ -2091,6 +2096,224 @@ function shutterPose(ctx, t) {
     sh.tex.repeat.y = tt; sh.tex.offset.y = 0;
     sh.mesh.visible = t > 0.02;
   });
+}
+
+// ============ 北側玻璃遮雨棚（深色鋼構＋弧形托架＋拉桿，依參考照片） ============
+const CANOPY = { X0: -10, P: 150, Z0: -3, Z1: 871, YT: 345, DROP: 12 }; // 出挑 150、長 874，四角皆在地界內
+function addCanopy() {
+  const { X0, P, Z0, Z1, YT, DROP } = CANOPY;
+  const steel = std(0x3B3530, 0.45, { metalness: 0.6 });
+  const glass = std(0xA9C9C1, 0.08, { transparent: true, opacity: 0.35, metalness: 0.1 });
+  const yAt = d => YT - d / P * DROP;                     // 往外洩水坡
+  const g = new THREE.Group(); CUR.add(g);
+  const beam = (a, b, w = 8, h = 12) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, A.distanceTo(B)), steel);
+    m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), B.clone().sub(A).normalize());
+    m.castShadow = true; m.receiveShadow = true; g.add(m); return m;
+  };
+  const rod = (a, b) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b);
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, A.distanceTo(B), 10), steel);
+    m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize());
+    m.castShadow = true; g.add(m);
+  };
+  const xo = d => X0 - d;
+  // 外框
+  beam([xo(4), YT, Z0], [xo(4), YT, Z1], 8, 14);                       // 靠牆橫樑
+  beam([xo(P), yAt(P), Z0], [xo(P), yAt(P), Z1], 10, 16);              // 前緣橫樑
+  beam([xo(P / 2), yAt(P / 2), Z0], [xo(P / 2), yAt(P / 2), Z1], 6, 10); // 中間縱樑
+  const n = 8;                                                          // 橫向格樑
+  for (let i = 0; i <= n; i++) {
+    const z = Z0 + 4 + (Z1 - Z0 - 8) * i / n;
+    beam([xo(4), YT, z], [xo(P), yAt(P), z], i === 0 || i === n ? 10 : 6, i === 0 || i === n ? 16 : 10);
+  }
+  // 玻璃（略高於鋼構，順著洩水坡）
+  const gl = new THREE.Mesh(new THREE.BoxGeometry(P, 1.2, Z1 - Z0), glass);
+  gl.position.set(xo(P / 2), yAt(P / 2) + 8, (Z0 + Z1) / 2);
+  gl.rotation.z = Math.atan2(DROP, P);
+  g.add(gl);
+  // 弧形托架與拉桿（每 300 cm 一組）
+  const sh = new THREE.Shape();
+  sh.moveTo(0, 0);
+  sh.lineTo(-(P - 6), -((P - 6) / P) * DROP);
+  sh.lineTo(-(P - 6), -((P - 6) / P) * DROP - 10);
+  const bd = Math.min(115, P * 0.6);
+  sh.quadraticCurveTo(-P * 0.28, -bd * 0.36, 0, -bd);
+  sh.lineTo(0, 0);
+  const bgeo = new THREE.ExtrudeGeometry(sh, { depth: 8, bevelEnabled: false }); bgeo.translate(0, 0, -4);
+  [0, 1, 2, 3].map(i => Z0 + 6 + (Z1 - Z0 - 12) * i / 3).forEach(z => {
+    const b = new THREE.Mesh(bgeo, steel); b.position.set(X0, YT - 7, z); b.castShadow = true; g.add(b);
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(2, bd + 10, 18), steel); plate.position.set(X0 - 1, YT - 7 - bd / 2, z); g.add(plate);
+    rod([X0 - 2, YT + 160, z], [xo(P - 8), yAt(P - 8) + 6, z]);
+    const anchor = new THREE.Mesh(new THREE.BoxGeometry(3, 16, 16), steel); anchor.position.set(X0 - 1.5, YT + 160, z); g.add(anchor);
+  });
+}
+
+// ============ 後院柵欄門（深灰鋁格柵，依參考照片，高 200 cm） ============
+function addGate(x, z0, z1, h, opt = {}) {
+  const mat = std(0x45484B, 0.5, { metalness: 0.4 });
+  const g = new THREE.Group(); CUR.add(g);
+  const b = (x0, y0, a, x1, y1, c) => box(x0, y0, a, x1, y1, c, mat, g);
+  const p0 = opt.p0 === undefined ? 10 : opt.p0, p1 = opt.p1 === undefined ? 10 : opt.p1; // 兩側立柱寬（0 = 不設柱）
+  if (p0) b(x - (p0 < 6 ? 4 : 7), 0, z0, x + (p0 < 6 ? 4 : 7), h, z0 + p0);
+  if (p1) b(x - 7, 0, z1 - p1, x + 7, h, z1);
+  const a0 = z0 + p0 + 1, a1 = z1 - p1 - 1;               // 門扇範圍
+  if (opt.wallHinge) [30, h - 30].forEach(y => {          // 門軸直接鎖在牆上
+    const k = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 14, 10), mat);
+    k.position.set(x, y, a1 + 0.5); k.castShadow = true; g.add(k);
+    b(x - 6, y - 4, a1, x + 6, y + 4, z1);
+  });
+  b(x - 3, 3, a0, x + 3, 7, a1);                           // 下橫料
+  b(x - 3, h * 0.42, a0, x + 3, h * 0.42 + 4, a1);         // 中橫料
+  b(x - 3, h - 9, a0, x + 3, h - 5, a1);                   // 上橫料
+  b(x - 3, 3, a0, x + 3, h - 2, a0 + 4);                   // 門框
+  b(x - 3, 3, a1 - 4, x + 3, h - 2, a1);
+  const n = Math.max(1, Math.floor((a1 - a0 - 8) / 9));    // 直格柵：寬 4、間距約 5
+  const step = (a1 - a0 - 8 - 4) / n;
+  for (let i = 0; i <= n; i++) { const z = a0 + 4 + i * step; b(x - 2, 3, z, x + 2, h - 2, z + 4); }
+  const lz = opt.wallHinge ? a0 + 6 : a1 - 9;
+  b(x - 4, h * 0.5 - 5, lz, x + 4, h * 0.5 + 5, lz + 3);    // 門鎖
+  C.colliders.push({ lv: 1, x0: x - 8, x1: x + 8, z0, z1, id: null, ext: false });
+}
+
+// ============ A2 露台玻璃屋（依參考照片：深色鋁框、西側玻璃立面、南北百葉窗附紗網） ============
+const SUNROOM = { X0: 125, X1: 890, ZB: 670, ZF: 887, YB: 1050, YF: 1020, ZN0: 607 };
+function addSunroom() {
+  const { X0, X1, ZB, ZF, YB, YF, ZN0 } = SUNROOM;
+  const PAR = L3 + 110;                                             // 女兒牆頂
+  const frame = std(0x2E3634, 0.45, { metalness: 0.5 });
+  const glass = std(0xCFE3EC, 0.05, { transparent: true, opacity: 0.28, metalness: 0.1 });
+  const slatM = std(0x8A9096, 0.35, { metalness: 0.6 });
+  const screen = std(0x1E2226, 0.9, { transparent: true, opacity: 0.22, side: THREE.DoubleSide });
+  const g = new THREE.Group(); CUR.add(g);
+  const yR = z => z <= ZB ? LR - SL : YB + (z - ZB) / (ZF - ZB) * (YF - YB);  // 屋頂高度（屋頂樓板下 → 往西洩水）
+  const bar = (a, b, w = 6, h = 8, mat = frame) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, A.distanceTo(B)), mat);
+    m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), B.clone().sub(A).normalize());
+    m.castShadow = true; m.receiveShadow = true; g.add(m); return m;
+  };
+  const pane = (x0, y0, z0, x1, y1, z1, mat = glass) => { const m = box(x0, y0, z0, x1, y1, z1, mat, g, false); return m; };
+
+  // ---- 玻璃屋頂：前後橫料＋縱向椽條＋中間檁條 ----
+  const nr = 8;
+  for (let i = 0; i <= nr; i++) { const x = X0 + (X1 - X0) * i / nr; bar([x, YB, ZB], [x, YF, ZF], 7, 11); }
+  [ZB, ZB + 72, ZB + 145, ZF].forEach(z => bar([X0, yR(z), z], [X1, yR(z), z], 6, 9));
+  const rg = new THREE.Mesh(new THREE.BoxGeometry(X1 - X0, 1, ZF - ZB), glass);
+  rg.position.set((X0 + X1) / 2, (YB + YF) / 2 + 6, (ZB + ZF) / 2);
+  rg.rotation.x = Math.atan2(YB - YF, ZF - ZB);
+  g.add(rg);
+
+  // ---- 西側立面（站在前方女兒牆上）：六片落地玻璃，只有兩端是可開窗 ----
+  const zw = ZF;
+  const np = 6, pw = (X1 - X0) / np;
+  for (let i = 0; i <= np; i++) { const x = X0 + pw * i; bar([x, PAR, zw], [x, YF, zw], 7, 7); }
+  bar([X0, PAR + 3, zw], [X1, PAR + 3, zw], 6, 6);
+  bar([X0, PAR + 38, zw], [X1, PAR + 38, zw], 5, 4);               // 下方橫料
+  pane(X0, PAR, zw - 0.5, X1, YF, zw + 0.5);
+  [0, np - 1].forEach(i => {                                         // 兩端可開窗：內框＋把手
+    const a = X0 + pw * i + 8, b = X0 + pw * (i + 1) - 8, y0 = PAR + 44, y1 = YF - 8;
+    bar([a, y0, zw - 4], [b, y0, zw - 4], 4, 4); bar([a, y1, zw - 4], [b, y1, zw - 4], 4, 4);
+    bar([a, y0, zw - 4], [a, y1, zw - 4], 4, 4); bar([b, y0, zw - 4], [b, y1, zw - 4], 4, 4);
+    const hx = i === 0 ? b - 6 : a + 6;
+    box(hx - 1.5, (y0 + y1) / 2 - 8, zw - 8, hx + 1.5, (y0 + y1) / 2 + 8, zw - 5, frame, g);
+    screenZ(zw - 10, a, b, y0, y1);                                  // 內側紗網
+  });
+
+  // ---- 紗網（裝在窗內側） ----
+  function screenX(x, a, b, y0, y1) {           // 南北面：平面垂直 x 軸
+    const sc = new THREE.Mesh(new THREE.PlaneGeometry(b - a - 6, y1 - y0 - 6), screen);
+    sc.rotation.y = Math.PI / 2; sc.position.set(x, (y0 + y1) / 2, (a + b) / 2); g.add(sc);
+  }
+  function screenZ(z, a, b, y0, y1) {           // 西面：平面垂直 z 軸
+    const sc = new THREE.Mesh(new THREE.PlaneGeometry(b - a - 6, y1 - y0 - 6), screen);
+    sc.position.set((a + b) / 2, (y0 + y1) / 2, z); g.add(sc);
+  }
+  // ---- 推射／橫拉窗（含內側紗網） ----
+  function windowX(x, a, b, y0, y1, inward) {
+    bar([x, y0, a], [x, y0, b], 7, 6); bar([x, y1, a], [x, y1, b], 7, 6);
+    bar([x, y0, a], [x, y1, a], 7, 6); bar([x, y0, b], [x, y1, b], 7, 6);
+    const mid = (a + b) / 2;
+    bar([x, y0, mid], [x, y1, mid], 5, 5);                         // 兩扇橫拉窗的中框
+    pane(x - 0.5, y0, a, x + 0.5, y1, b);
+    box(x - 4, (y0 + y1) / 2 - 7, mid - 6, x + 4, (y0 + y1) / 2 + 7, mid - 3, frame, g); // 把手
+    screenX(x + inward * 6, a, b, y0, y1);
+  }
+
+  // ---- 百葉窗（含內側紗網） ----
+  function louver(x, a, b, y0, y1) {
+    bar([x, y0, a], [x, y0, b], 7, 6); bar([x, y1, a], [x, y1, b], 7, 6);
+    bar([x, y0, a], [x, y1, a], 7, 6); bar([x, y0, b], [x, y1, b], 7, 6);
+    for (let y = y0 + 8; y < y1 - 4; y += 7) {
+      const s = new THREE.Mesh(new THREE.BoxGeometry(7, 0.8, b - a - 6), slatM);
+      s.position.set(x, y, (a + b) / 2); s.rotation.z = (x < 500 ? 1 : -1) * 0.45; s.castShadow = true; g.add(s);
+    }
+    const sc = new THREE.Mesh(new THREE.PlaneGeometry(b - a - 6, y1 - y0 - 6), screen);
+    sc.rotation.y = Math.PI / 2; sc.position.set(x + (x < 500 ? 5 : -5), (y0 + y1) / 2, (a + b) / 2); g.add(sc);
+  }
+  const fill = (x, a, b, yLow) => { // 百葉上緣到斜屋頂之間補玻璃
+    const top = Math.max(yR(a), yR(b));
+    if (top - yLow > 1) pane(x - 0.5, yLow, a, x + 0.5, top, b);
+  };
+
+  // ---- 南側（站在分戶女兒牆上）：兩樘百葉 ----
+  const xs = X1;
+  { const a = 677, b = ZF, t = Math.min(yR(a), yR(b)) - 4; windowX(xs, a, b, PAR, t, -1); fill(xs, a, b, t); } // 一樘橫拉窗
+
+  // ---- 北側：陽台段百葉＋D5 尺寸門＋露台段百葉（從地板到屋頂） ----
+  const xn = X0, F = L3, dTop = F + 240;
+  [[ZN0, 680], [680, 780]].forEach(([a, b]) => { louver(xn, a, b, F, dTop); fill(xn, a, b, dTop); });
+  const da = 785, db = 875;                                          // D5：90×230、門檻 10（移到西端）
+  bar([xn, F, da], [xn, yR(da), da], 7, 8); bar([xn, F, db], [xn, yR(db), db], 7, 8);
+  pane(xn - 0.5, F, db, xn + 0.5, yR(ZF), ZF);                       // 門與西側立面之間補玻璃
+  bar([xn, dTop, da], [xn, dTop, db], 7, 8);
+  box(xn - 3, F, da, xn + 3, F + 10, db, frame, g);                  // 門檻
+  const leaf = new THREE.Group(); leaf.position.set(xn, F + 10, db); g.add(leaf);   // 門軸在西側
+  const lf = new THREE.Mesh(new THREE.BoxGeometry(4, 230, db - da - 4), frame); lf.position.set(0, 115, -(db - da) / 2); leaf.add(lf);
+  const lg = new THREE.Mesh(new THREE.BoxGeometry(4.5, 210, db - da - 16), glass); lg.position.set(0, 115, -(db - da) / 2); leaf.add(lg);
+  const kn = new THREE.Mesh(new THREE.BoxGeometry(6, 16, 3), frame); kn.position.set(-3, 105, -(db - da) + 8); leaf.add(kn); // 把手在東側
+  leaf.rotation.y = 0.5;                                             // 門微開，往外（爬梯區）
+  pane(xn - 0.5, dTop, da, xn + 0.5, Math.max(yR(da), yR(db)), db);  // 門上方氣窗
+
+  // ---- 碰撞：北側百葉擋住，門洞可通行 ----
+  C.colliders.push({ lv: 3, x0: xn - 5, x1: xn + 5, z0: ZN0, z1: da, id: null, ext: false });
+  C.colliders.push({ lv: 3, x0: xn - 5, x1: xn + 5, z0: db, z1: ZF + 10, id: null, ext: false });
+}
+
+// ============ 屋頂臥式 2T 不鏽鋼水塔（含不鏽鋼底座） ============
+// 尺寸取市售臥式 2 噸常見規格：直徑 120 cm、總長約 200 cm；底座高 55 cm
+function addTank(cx, cz) {
+  const ss = std(0xC9CDD1, 0.22, { metalness: 0.85 }), ssDark = std(0xA9AEB3, 0.3, { metalness: 0.8 });
+  const g = new THREE.Group(); g.position.set(cx, LR, cz); CUR.add(g);
+  const R = 60, L = 170, base = 55, cy = base + R;
+  const add = (geo, mat, x, y, z, rx = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.x = rx; m.rotation.z = rz; m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  // 筒身（軸向沿 x）與兩端碟形封頭
+  add(new THREE.CylinderGeometry(R, R, L, 40, 1, true), ss, 0, cy, 0, 0, Math.PI / 2);
+  [-1, 1].forEach(sd => { const h = add(new THREE.SphereGeometry(R, 40, 16, 0, Math.PI * 2, 0, Math.PI / 2), ss, sd * L / 2, cy, 0, 0, -sd * Math.PI / 2); h.scale.y = 0.25; });
+  [-60, 0, 60].forEach(x => add(new THREE.CylinderGeometry(R + 1, R + 1, 3, 40), ssDark, x, cy, 0, 0, Math.PI / 2)); // 補強環
+  add(new THREE.CylinderGeometry(22, 22, 10, 28), ssDark, -30, cy + R + 3, 0);   // 人孔
+  add(new THREE.CylinderGeometry(24, 24, 3, 28), ss, -30, cy + R + 9, 0);        // 人孔蓋
+  add(new THREE.CylinderGeometry(4, 4, 14, 12), ssDark, 50, cy + R + 4, 0);      // 通氣管
+  add(new THREE.CylinderGeometry(3.5, 3.5, 30, 12), ssDark, L / 2 + 20, cy - 35, 30, 0, Math.PI / 2); // 出水管
+  add(new THREE.CylinderGeometry(3, 3, 30, 12), ssDark, -L / 2 - 20, cy + 25, -30, 0, Math.PI / 2);   // 進水管
+  // 不鏽鋼底座：兩組鞍座＋方管腳＋縱向斜撐
+  [-55, 55].forEach(x => {
+    add(new THREE.BoxGeometry(10, 12, 2 * R * 0.9), ss, x, base + 6, 0);           // 鞍座橫樑
+    [-1, 1].forEach(sz => {
+      add(new THREE.BoxGeometry(10, 26, 10), ss, x, base + 12 + 13, sz * R * 0.62); // 鞍座托板
+      add(new THREE.BoxGeometry(6, base, 6), ss, x, base / 2, sz * R * 0.82);       // 腳
+      add(new THREE.BoxGeometry(16, 1.5, 16), ssDark, x, 0.75, sz * R * 0.82);      // 腳底板
+    });
+  });
+  [-1, 1].forEach(sz => {
+    add(new THREE.BoxGeometry(110, 5, 5), ss, 0, 12, sz * R * 0.82);               // 下橫撐
+    add(new THREE.BoxGeometry(110, 5, 5), ss, 0, base - 3, sz * R * 0.82);         // 上橫撐
+  });
+  label('2T 不鏽鋼水塔', cx, LR + 240, cz, { size: 40, scale: 0.72 });
 }
 
 // ============ 建立模型 ============
@@ -2225,8 +2448,8 @@ function build(root, orig) {
     label('起居室', ox + 330, L3 + 170, 420);
     label('梯廳 +735', ox + 750, L3 + 170, 470, { size: 50 });
     label('浴室', ox + 150, L3 + 180, r + 90);
-    label('陽台', ox + 450, L3 + 130, 637, { size: 50 });
-    label('露台', ox + 450, L3 + 130, 790);
+    if (!orig && ox === 0) { label('玻璃屋', ox + 500, L3 + 150, 740); label('爬梯區', ox + 65, L3 + 150, 790, { size: 40 }); }
+    else { label('陽台', ox + 450, L3 + 130, 637, { size: 50 }); label('露台', ox + 450, L3 + 130, 790); }
   });
   wall('x', F3, -10, 1810, EXT, [
     win('W1', 195, { trim: 1 }), win('W1', 448, { trim: 1 }), win('W1', 693, { trim: 1 }), door('D5', 834, { swing: -1, hinge: 'b', metal: true }),
@@ -2252,6 +2475,15 @@ function build(root, orig) {
 
   skinPass(root);
   floorPass(root);
+  if (!orig) {
+    CUR = floors.f1; addCanopy();
+    // 後院兩端的柵欄門：北側在 A2 北牆延長線上，南側在 A1 南牆延長線上，從後牆轉角接到圍牆
+    addGate(0, fenceZ(0) + 16, -10, 200);
+    addGate(1800, fenceZ(1800) + 16, 35, 200, { p0: 3, p1: 0, wallHinge: true }); // 南端小門：門軸鎖在 A1 後牆轉角，圍牆側只留扣鎖片
+    CUR = floors.f3; CUR_LV = 3; addSunroom();
+    CUR = floors.roof; CUR_LV = 4;
+    UNITS.forEach(({ ox, r }) => addTank(ox + 450, r + 190)); // 兩戶屋頂各一座，靠後側擺放
+  }
   defaultItems(orig).forEach(it => addItem(ctx, it));
   C = null;
   return ctx;
@@ -2713,7 +2945,11 @@ modes.compare = {
         <li>臥室數量由 3 間變為 2 間。</li>
       </ul>
       <p class="sec">A2 一樓</p>
-      <ul class="list"><li>廚具由一字型改為 L 型，沿北牆與西牆配置，水槽移到 W1 窗下。</li></ul>
+      <ul class="list"><li>北側外牆新增玻璃遮雨棚，長約 875 cm、出挑 150 cm，四角都在地界內。</li><li>後院北端（A2 後牆轉角到圍牆）新增柵欄門，高 200 cm。</li></ul>
+      <p class="sec">A2 三樓</p>
+      <ul class="list"><li>A2、A1 屋頂各加一座臥式 2T 不鏽鋼水塔（含不鏽鋼底座）。</li><li>露台加裝玻璃屋：屋頂在屋頂樓板下方，北側留爬梯區並設 D5 尺寸門與百葉窗，南側為橫拉窗，所有窗戶內側都有紗網。</li></ul>
+      <p class="sec">A1 一樓（後院）</p>
+      <ul class="list"><li>後院南端新增小柵欄門（淨寬約 35 cm，門軸直接鎖在牆上），高 200 cm。</li><li>廚具由一字型改為 L 型，沿北牆與西牆配置，水槽移到 W1 窗下。</li></ul>
       <p class="sec">A1 一樓</p>
       <ul class="list">
         <li>臥室往後貼緊樓梯並往北加寬，窗戶改開在南牆靠東（W1），衣櫃收在樓梯下方。</li>
