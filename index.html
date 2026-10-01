@@ -1877,8 +1877,9 @@ const CAT = {
   ac: { name: '冷氣室外機', w: 80, d: 30, h: 55, move: false, build: g => { bx(g, -40, 0, -15, 40, 55, 15, M.ac); } }
 };
 const fridgeBody = std(0xE9EBEC, 0.35, { metalness: 0.35 }), fridgeHandle = std(0x9EA3A7, 0.3, { metalness: 0.8 }), fridgeGap = std(0x3A3D40, 0.6);
+const COUNTER_TOP = std(0x3A3634, 0.35);
 CAT.counter_l = { name: 'L 型廚具', w: 240, d: 300, h: 88, move: false, build: g => {
-  const top = std(0x3A3634, 0.35), sinkM = std(0xB9BEC2, 0.25, { metalness: 0.8 }), hob = std(0x111214, 0.2), fau = std(0xD0D3D6, 0.2, { metalness: 0.9 });
+  const top = COUNTER_TOP, sinkM = std(0xB9BEC2, 0.25, { metalness: 0.8 }), hob = std(0x111214, 0.2), fau = std(0xD0D3D6, 0.2, { metalness: 0.9 });
   bx(g, 0, 0, -300, 60, 84, 0, M.counter);          // 北牆段（沿北牆）
   bx(g, 60, 0, -60, 240, 84, 0, M.counter);         // 西牆段（沿西牆）
   bx(g, 0, 84, -300, 60, 88, 0, top);
@@ -1906,6 +1907,21 @@ CAT.massage = { name: '按摩椅', w: 80, d: 130, h: 118, move: true, build: g =
   tilt(42, 18, 16, 0, 138, -60, -0.32, leather);               // 頭枕
   tilt(50, 44, 16, 0, 26, 50, 0.5, leather);                   // 小腿按摩座
   tilt(52, 46, 6, 0, 24, 58, 0.5, shell);
+} };
+CAT.island = { name: '中島', w: 190, d: 100, h: 88, move: true, build: g => {
+  // 工作側（+z）櫃體 180×75；座位側（-z）檯面外伸 25 cm 放腳
+  bx(g, -90, 0, -25, 90, 84, 50, M.counter);
+  bx(g, -95, 84, -50, 95, 88, 50, COUNTER_TOP);
+  bx(g, -90, 0, -25, 90, 8, -23, COUNTER_TOP);                 // 踢腳收邊
+  [-45, 0, 45].forEach(x => bx(g, x - 0.6, 12, 49.5, x + 0.6, 80, 50.5, COUNTER_TOP)); // 門片分割線
+} };
+CAT.stool = { name: '吧台椅', w: 40, d: 40, h: 90, move: true, build: g => {
+  const metal = std(0x2E3033, 0.35, { metalness: 0.6 });
+  const seat = new THREE.Mesh(new THREE.CylinderGeometry(19, 17, 6, 24), M.fabric); seat.position.y = 65; seat.castShadow = true; g.add(seat);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(32, 22, 3), M.fabric); back.position.set(0, 82, -17); back.castShadow = true; g.add(back);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 62, 12), metal); pole.position.y = 32; g.add(pole);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(15, 1.2, 8, 24), metal); ring.rotation.x = Math.PI / 2; ring.position.y = 25; g.add(ring);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(20, 21, 2, 24), metal); base.position.y = 1; base.castShadow = true; g.add(base);
 } };
 CAT.wardrobe_s = { name: '衣櫃（120 cm）', w: 120, d: 60, h: 220, move: true, build: g => { bx(g, -60, 0, -30, 60, 220, 30, M.wood); bx(g, -1, 20, 29, 1, 200, 31, M.frame); } };
 CAT.washer = { name: '上烘下洗洗衣機', w: 60, d: 65, h: 180, move: true, build: g => {
@@ -1938,13 +1954,19 @@ CAT.fridge2 = { name: '上下門冰箱', w: 70, d: 70, h: 175, move: true, build
   bx(g, 27, 116, 35, 30, 160, 38, fridgeHandle);            // 上門把手
   bx(g, 27, 60, 35, 30, 102, 38, fridgeHandle);             // 下門把手
 } };
-const ADDABLE = ['bed_d', 'bed_s', 'sofa', 'dining', 'chair', 'coffee', 'tv', 'wardrobe', 'wardrobe_s', 'desk', 'nightstand', 'fridge1', 'fridge2', 'washer', 'massage', 'plant'];
+const ADDABLE = ['bed_d', 'bed_s', 'sofa', 'dining', 'island', 'stool', 'chair', 'coffee', 'tv', 'wardrobe', 'wardrobe_s', 'desk', 'nightstand', 'fridge1', 'fridge2', 'washer', 'massage', 'plant'];
 
 function defaultItems(orig) {
   const L = [], a = (type, x, z, rot, lv) => L.push({ type, x, z, rot, lv });
   if (orig) a('counter', 42, 415, 90, 1); else a('counter_l', 10, 596, 0, 1);
-  a('dining', 380, 420, 90, 1);
-  a('chair', 320, 380, 90, 1); a('chair', 320, 460, 90, 1); a('chair', 440, 380, -90, 1); a('chair', 440, 460, -90, 1);
+  if (orig) {
+    a('dining', 380, 420, 90, 1);
+    a('chair', 320, 380, 90, 1); a('chair', 320, 460, 90, 1); a('chair', 440, 380, -90, 1); a('chair', 440, 460, -90, 1);
+  } else {
+    // 中島：與 L 型廚具兩側各留 100 cm 走道；工作側朝西（面向廚具），座位側朝東
+    a('island', 260, 386, 0, 1);
+    a('stool', 205, 314, 0, 1); a('stool', 260, 314, 0, 1); a('stool', 315, 314, 0, 1);
+  }
   a('sofa', 582, 410, 90, 1); a('coffee', 700, 410, 90, 1); a('tv', 868, 412, -90, 1);
   a('toilet', 60, 42, 0, 1); a('sink', 207, 36, 0, 1); a('rav4', -128, 520, -90, 1);
   a('counter', 942, 430, 90, 1);
@@ -1999,7 +2021,7 @@ function roomDefs() {
   UNITS.forEach(({ name: u, ox, r }) => {
     const bd = u === 'A2' ? 210 : 170;
     add(u + '-1F-bath', u, 1, '浴室', [[ox + 10, ox + 275, r + 10, r + bd - 5]], ['後牆 W4 高窗通風採光', '旁邊是 D6 後門，可通往後院']);
-    if (u === 'A2') add('A2-1F-main', 'A2', 1, '客餐廳', [[ox + 285, ox + 890, r + 10, 596], [ox + 10, ox + 285, r + bd + 5, 596]], ['廚房、餐廳、客廳開放相連', 'L 型廚具沿北牆與西牆，水槽在 W1 窗下', '正面 W1、W2 採光，W2 寬達 3 m', '大門 D1 直通騎樓，後側 L 型樓梯上二樓']);
+    if (u === 'A2') add('A2-1F-main', 'A2', 1, '客餐廳', [[ox + 285, ox + 890, r + 10, 596], [ox + 10, ox + 285, r + bd + 5, 596]], ['廚房、餐廳、客廳開放相連', 'L 型廚具沿北牆與西牆，水槽在 W1 窗下', '中島兼餐桌，可坐 3 人', '正面 W1、W2 採光，W2 寬達 3 m', '大門 D1 直通騎樓，後側 L 型樓梯上二樓']);
     else {
       add('A1-1F-main', 'A1', 1, '客餐廳', [[910, 1185, 220, 596], [1185, 1405, 55, 596], [1405, 1790, 55, 172], [1405, 1790, 475, 596]], ['廚房、餐廳、客廳開放相連', '正面 W1、W1a 採光', '大門 D1 移到右前方，進門有小玄關', '後側 L 型樓梯上二樓']);
       add('A1-1F-bed', 'A1', 1, '臥室', [[1415, 1790, 182, 465]], ['一樓唯一的臥室，適合長輩', '後牆貼緊樓梯，衣櫃收在樓梯下方', '南牆靠東開 W1 採光', '房門 D2 在北牆靠東，床頭靠北牆靠西']);
@@ -2380,7 +2402,7 @@ function build(root, orig) {
   addShutter(ctx, 'x', FRONT - 44, 920, 1770, ARC, L2 - SL - 50);
   addShutter(ctx, 'z', 10, F1 + 10, FRONT - 40, ARC, L2 - SL - 42);
   addShutter(ctx, 'z', 1790, F1 + 10, FRONT - 40, ARC, L2 - SL - 42);
-  label('餐廳', 380, L1 + 170, 420); label('客廳 +35', 700, L1 + 170, 400);
+  label(orig ? '餐廳' : '中島', orig ? 380 : 260, L1 + 170, orig ? 420 : 386); label('客廳 +35', 700, L1 + 170, 400);
   label('餐廳', 1110, L1 + 170, 420); label('客廳 +35', 1300, L1 + 170, 390); label('臥室', orig ? 1650 : 1600, L1 + 170, orig ? 430 : 320);
   if (!orig) label('玄關', 1600, L1 + 150, 540, { size: 50 });
 
@@ -2949,7 +2971,7 @@ modes.compare = {
       <p class="sec">A2 三樓</p>
       <ul class="list"><li>A2、A1 屋頂各加一座臥式 2T 不鏽鋼水塔（含不鏽鋼底座）。</li><li>露台加裝玻璃屋：屋頂在屋頂樓板下方，北側留爬梯區並設 D5 尺寸門與百葉窗，南側為橫拉窗，所有窗戶內側都有紗網。</li></ul>
       <p class="sec">A1 一樓（後院）</p>
-      <ul class="list"><li>後院南端新增小柵欄門（淨寬約 35 cm，門軸直接鎖在牆上），高 200 cm。</li><li>廚具由一字型改為 L 型，沿北牆與西牆配置，水槽移到 W1 窗下。</li></ul>
+      <ul class="list"><li>後院南端新增小柵欄門（淨寬約 35 cm，門軸直接鎖在牆上），高 200 cm。</li><li>廚具由一字型改為 L 型，沿北牆與西牆配置，水槽移到 W1 窗下。</li><li>餐桌換成中島（含檯面 190×100 cm），附 3 張吧台椅。</li></ul>
       <p class="sec">A1 一樓</p>
       <ul class="list">
         <li>臥室往後貼緊樓梯並往北加寬，窗戶改開在南牆靠東（W1），衣櫃收在樓梯下方。</li>
