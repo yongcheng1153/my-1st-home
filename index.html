@@ -277,6 +277,7 @@
   <button id="tbCodes" aria-pressed="false">門窗代號</button>
   <span class="sep"></span>
   <button id="tbShutter" aria-pressed="true">鐵捲門：關</button>
+  <button id="tbTele" aria-pressed="true">伸縮門：關</button>
   <span class="sep share-only"></span>
   <button id="tbShare" class="share-only">分享</button>
 </div></div>
@@ -1968,7 +1969,7 @@ function defaultItems(orig) {
     a('stool', 205, 314, 0, 1); a('stool', 260, 314, 0, 1); a('stool', 315, 314, 0, 1);
   }
   a('sofa', 582, 410, 90, 1); a('coffee', 700, 410, 90, 1); a('tv', 868, 412, -90, 1);
-  a('toilet', 60, 42, 0, 1); a('sink', 207, 36, 0, 1); a('rav4', -128, 520, -90, 1);
+  a('toilet', 60, 42, 0, 1); a('sink', 207, 36, 0, 1); a('rav4', -395, 765, 180, 1);
   a('counter', 942, 430, 90, 1);
   if (orig) {
     a('dining', 1110, 420, 90, 1);
@@ -1977,11 +1978,11 @@ function defaultItems(orig) {
   } else {
     a('dining', 1060, 480, 90, 1);
     a('chair', 1000, 440, 90, 1); a('chair', 1000, 520, 90, 1); a('chair', 1120, 440, -90, 1); a('chair', 1120, 520, -90, 1);
-    a('sofa', 1210, 375, 90, 1); a('coffee', 1300, 375, 90, 1); a('tv', 1385, 375, -90, 1);
+    a('sofa', 1330, 350, 90, 1); a('coffee', 1440, 350, 90, 1); a('tv', 1530, 350, -90, 1);
   }
   a('toilet', 960, 97, 0, 1); a('sink', 1107, 81, 0, 1);
   if (orig) { a('bed_d', 1689, 410, 180, 1); a('nightstand', 1766, 515, 0, 1); }
-  else { a('bed_d', 1515, 385, 0, 1); a('wardrobe', 1690, 212, 0, 1); a('desk', 1710, 436, 180, 1); a('chair', 1710, 383, 0, 1); }
+  else { a('bed_s', 1660, 355, 0, 1); }
   UNITS.forEach(({ ox, r }) => {
     if (orig) {
       a('bed_d', ox + 120, r + 600, 0, 2); a('bed_d', ox + 420, r + 600, 0, 2);
@@ -2021,10 +2022,11 @@ function roomDefs() {
   UNITS.forEach(({ name: u, ox, r }) => {
     const bd = u === 'A2' ? 210 : 170;
     add(u + '-1F-bath', u, 1, '浴室', [[ox + 10, ox + 275, r + 10, r + bd - 5]], ['後牆 W4 高窗通風採光', '旁邊是 D6 後門，可通往後院']);
+    if (u === 'A2') { add('A2-1F-glass', 'A2', 1, '玻璃屋', [[-250, -14, 6, 600]], ['北側一層玻璃屋，地坪 +20', '紅圈那一側為雙扇拉門', '北側與西側為橫拉窗，可直接拖曳開關', '屋頂玻璃往外洩水'], true); R[R.length - 1].area = 13.7; }
     if (u === 'A2') add('A2-1F-main', 'A2', 1, '客餐廳', [[ox + 285, ox + 890, r + 10, 596], [ox + 10, ox + 285, r + bd + 5, 596]], ['廚房、餐廳、客廳開放相連', 'L 型廚具沿北牆與西牆，水槽在 W1 窗下', '中島兼餐桌，可坐 3 人', '正面 W1、W2 採光，W2 寬達 3 m', '大門 D1 直通騎樓，後側 L 型樓梯上二樓']);
     else {
-      add('A1-1F-main', 'A1', 1, '客餐廳', [[910, 1185, 220, 596], [1185, 1405, 55, 596], [1405, 1790, 55, 172], [1405, 1790, 475, 596]], ['廚房、餐廳、客廳開放相連', '正面 W1、W1a 採光', '大門 D1 移到右前方，進門有小玄關', '後側 L 型樓梯上二樓']);
-      add('A1-1F-bed', 'A1', 1, '臥室', [[1415, 1790, 182, 465]], ['一樓唯一的臥室，適合長輩', '後牆貼緊樓梯，衣櫃收在樓梯下方', '南牆靠東開 W1 採光', '房門 D2 在北牆靠東，床頭靠北牆靠西']);
+      add('A1-1F-main', 'A1', 1, '客餐廳', [[910, 1185, 220, 596], [1185, 1550, 55, 596], [1550, 1790, 55, 172], [1550, 1790, 415, 596]], ['廚房、餐廳、客廳開放相連', '正面 W1、W1a 採光', '大門 D1 移到右前方，進門有小玄關', '後側 L 型樓梯上二樓']);
+      add('A1-1F-bed', 'A1', 1, '臥室', [[1560, 1790, 182, 405]], ['一樓唯一的臥室，單人床', '後牆貼緊樓梯，房內可看到樓梯底面', '南牆開 W1 採光', '房門 D2 在北牆靠東，床尾距南牆約 30 cm']);
     }
     add(u + '-1F-arcade', u, 1, '騎樓', [[ox + 10, ox + 890, 616, 887]], ['深約 3 m，可停一輛車', '右側設 1:4 洩水坡道'], true);
     add(u + '-2F-ensuite', u, 2, '主臥浴室', [[ox + 10, ox + 225, r + 10, r + 195]], ['大房間專用，D4 進出', '後牆 W5 小窗通風']);
@@ -2045,7 +2047,7 @@ function roomDefs() {
   });
   return R;
 }
-const roomArea = rm => rm.rects.reduce((s, [a, b, c, d]) => s + (b - a) * (d - c), 0) / 1e4;
+const roomArea = rm => rm.area !== undefined ? rm.area : rm.rects.reduce((s, [a, b, c, d]) => s + (b - a) * (d - c), 0) / 1e4;
 const roomCenter = rm => { let A = 0, X = 0, Z = 0; rm.rects.forEach(([a, b, c, d]) => { const s = (b - a) * (d - c); A += s; X += s * (a + b) / 2; Z += s * (c + d) / 2; }); return { x: X / A, z: Z / A }; };
 const roomSize = rm => { const xs = rm.rects.flatMap(r => [r[0], r[1]]), zs = rm.rects.flatMap(r => [r[2], r[3]]); return Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)); };
 
@@ -2338,6 +2340,249 @@ function addTank(cx, cz) {
   label('2T 不鏽鋼水塔', cx, LR + 240, cz, { size: 40, scale: 0.72 });
 }
 
+// ============ 北側新圍閉：圍牆延伸、電線桿、伸縮門 ============
+const POLE = { x: -679, z: 877 };                    // 綠點：騎樓柱列延長線上
+const BLUE_END_X = -333;                             // 藍線終點（沿圍牆斜度往北延伸約 2.1 m）
+const NEW_AREA = [[-10, 877], [POLE.x, POLE.z], [BLUE_END_X, 0], [-120, 0], [-10, 0]]; // 走動範圍（z 於建立時補上）
+const matteBlack = std(0x1A1B1C, 0.92, { metalness: 0.12 });   // 硝黑不反光
+function lineCols(ax, az, bx, bz, thick, lv = 1, from = 0, to = 1) {
+  const out = [], len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.ceil(len * (to - from) / 30));
+  for (let i = 0; i < n; i++) {
+    const t0 = from + (to - from) * i / n, t1 = from + (to - from) * (i + 1) / n;
+    const x0 = ax + (bx - ax) * t0, z0 = az + (bz - az) * t0, x1 = ax + (bx - ax) * t1, z1 = az + (bz - az) * t1;
+    out.push({ lv, x0: Math.min(x0, x1) - thick / 2, x1: Math.max(x0, x1) + thick / 2, z0: Math.min(z0, z1) - thick / 2, z1: Math.max(z0, z1) + thick / 2, id: null, ext: true });
+  }
+  return out;
+}
+// 1. 藍線：圍牆延伸。下半 125 cm 為磚牆（二丁掛、同原圍牆），上半用鐵圍欄補到 250 cm
+function addFenceExt() {
+  const zc = x => fenceZ(x) + 8;
+  const ax = -120, bx = BLUE_END_X, az = zc(ax), bz = zc(bx);
+  const len = Math.hypot(bx - ax, bz - az), ang = Math.atan2(bz - az, bx - ax);
+  const grp = new THREE.Group(); CUR.add(grp);
+  const wallM = new THREE.Mesh(new THREE.BoxGeometry(len + 8, 125, 15), M.fence);
+  wallM.position.set((ax + bx) / 2, 62.5, (az + bz) / 2); wallM.rotation.y = -ang; wallM.castShadow = true; wallM.receiveShadow = true; grp.add(wallM);
+  skinPass(grp);
+  const st = new THREE.Group(); st.position.set(ax, 0, az); st.rotation.y = -ang; grp.add(st);
+  const b = (x0, y0, z0, x1, y1, z1) => box(x0, y0, z0, x1, y1, z1, matteBlack, st);
+  [4, len / 2, len - 4].forEach(x => b(x - 4, 125, -4, x + 4, 252, 4));         // 方柱
+  b(0, 132, -1.5, len, 136, 1.5);                                                 // 下橫桿
+  b(0, 214, -1.5, len, 218, 1.5); b(0, 228, -1.5, len, 232, 1.5);                 // 上方雙橫桿
+  for (let x = 12; x < len - 8; x += 12) {
+    if (Math.abs(x - len / 2) < 7) continue;
+    b(x - 1.2, 125, -1.2, x + 1.2, 240, 1.2);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(2.4, 10, 4), matteBlack);   // 矛頭
+    tip.position.set(x, 245, 0); tip.rotation.y = Math.PI / 4; tip.castShadow = true; st.add(tip);
+  }
+  C.colliders.push(...lineCols(ax, az, bx, bz, 16));
+}
+// 2. 綠點：台灣巷弄常見的水泥電線桿（地上約 11 m，底部黃黑防撞反光帶）
+function addPole() {
+  const { x, z } = POLE, H = 1100;
+  const conc = std(0x9E9C96, 0.95);
+  const g = new THREE.Group(); g.position.set(x, 0, z); CUR.add(g);
+  const add = (geo, mat, px, py, pz) => { const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  add(new THREE.CylinderGeometry(10, 18, H, 24), conc, 0, H / 2, 0);
+  const c = document.createElement('canvas'); c.width = 128; c.height = 256;
+  const gx = c.getContext('2d'); gx.fillStyle = '#F2C230'; gx.fillRect(0, 0, 128, 256);
+  gx.fillStyle = '#1A1A1A';
+  for (let i = -4; i < 12; i++) { gx.beginPath(); gx.moveTo(0, i * 40); gx.lineTo(128, i * 40 + 60); gx.lineTo(128, i * 40 + 80); gx.lineTo(0, i * 40 + 20); gx.fill(); }
+  const tex = new THREE.CanvasTexture(c); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(2, 1);
+  add(new THREE.CylinderGeometry(17.6, 18.4, 200, 24), std(0xFFFFFF, 0.6, { map: tex }), 0, 100, 0);
+  const steel = std(0x5E6266, 0.5, { metalness: 0.5 }), porcelain = std(0xF2F2EE, 0.3);
+  [[1020, 200], [900, 140]].forEach(([y, w]) => {                                 // 橫擔與礙子
+    add(new THREE.BoxGeometry(8, 8, w), steel, 0, y, 0);
+    [-w / 2 + 12, 0, w / 2 - 12].forEach(dz => add(new THREE.CylinderGeometry(4, 5, 14, 12), porcelain, 0, y + 11, dz));
+  });
+  add(new THREE.BoxGeometry(3, 26, 18), std(0xE8E8E2, 0.6), -19, 260, 0);       // 桿號牌
+  label('電線桿', x, H + 80, z, { size: 40, scale: 0.72 });
+  C.colliders.push({ lv: 1, x0: x - 22, x1: x + 22, z0: z - 22, z1: z + 22, id: null, ext: true });
+}
+// 3. 紅線：兩樘電動伸縮門（硝黑、高 200 cm）
+//    門尾固定在遠端（藍線端／騎樓西北角柱），電動機頭在前端，往電線桿方向行進關門
+const TGATE = { closed: true, t: 1, list: [], cols: [] };
+const beaconMat = std(0xF5A623, 0.3, { emissive: 0xF59E0B, emissiveIntensity: 0.6 });
+const warnMat = std(0xF2C230, 0.6);
+function addTeleGate(ax, az, bx, bz, h) {
+  const len = Math.hypot(bx - ax, bz - az), ang = Math.atan2(bz - az, bx - ax);
+  const root = new THREE.Group(); root.position.set(ax, 0, az); root.rotation.y = -ang; CUR.add(root);
+  const add = (geo, px, py, pz, parent = root, mat = matteBlack) => { const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
+  // 門尾：固定立柱（鎖在牆／圍牆端）
+  const tailW = 14;
+  add(new THREE.BoxGeometry(tailW, h + 4, 18), tailW / 2, (h + 4) / 2, 0);
+  const rod = 10, headW = 34, endGap = 24;
+  const L = len - tailW - rod - 1 - headW - endGap, n = Math.max(4, Math.round(L / 48)), fullS = L / n;
+  const posts = [], bays = [];
+  for (let i = 0; i <= n; i++) {
+    const pg = new THREE.Group(); root.add(pg);
+    add(new THREE.BoxGeometry(2.6, h - 28, 2.6), 0, (h - 28) / 2 + 8, 0, pg);
+    add(new THREE.BoxGeometry(2.6, h - 28, 2.6), rod, (h - 28) / 2 + 8, 0, pg);
+    const arch = new THREE.Mesh(new THREE.TorusGeometry(rod / 2, 1.3, 6, 12, Math.PI), matteBlack);
+    arch.position.set(rod / 2, h - 20, 0); arch.castShadow = true; pg.add(arch);
+    const w = add(new THREE.CylinderGeometry(5, 5, 3, 12), rod / 2, 5, 0, pg); w.rotation.x = Math.PI / 2;
+    posts.push(pg);
+    if (i < n) {                                            // 剪刀式交叉桿（三層）
+      const bg = new THREE.Group(); root.add(bg);
+      const w0 = fullS - rod, y0 = 16, y1 = h - 30, tier = (y1 - y0) / 3;
+      for (let k = 0; k < 3; k++) {
+        const ya = y0 + k * tier, yb = ya + tier, hyp = Math.hypot(w0, tier), a = Math.atan2(tier, w0);
+        [a, -a].forEach(rz => { const m = add(new THREE.BoxGeometry(hyp, 2.2, 1.6), w0 / 2, (ya + yb) / 2, 0, bg); m.rotation.z = rz; });
+      }
+      bays.push({ g: bg, w0 });
+    }
+  }
+  // 電動機頭：馬達、驅動輪、遙控接收器、警示燈
+  const head = new THREE.Group(); root.add(head);
+  add(new THREE.BoxGeometry(headW, h + 8, 26), headW / 2, (h + 8) / 2, 0, head);
+  add(new THREE.BoxGeometry(headW + 4, 42, 32), headW / 2, 30, 0, head);                 // 馬達箱
+  [-1, 1].forEach(sd => {
+    const wh = add(new THREE.CylinderGeometry(10, 10, 6, 18), headW / 2 + sd * 9, 10, 0, head, std(0x151515, 0.9)); wh.rotation.x = Math.PI / 2; // 驅動輪
+    add(new THREE.BoxGeometry(20, 12, 0.6), headW / 2, h - 60, sd * 13.4, head, warnMat);   // 黃色警示貼
+    add(new THREE.BoxGeometry(16, 22, 3), headW / 2, h - 100, sd * 14.5, head);             // 操作面板／接收器
+  });
+  add(new THREE.CylinderGeometry(6, 7, 8, 16), headW / 2, h + 12, 0, head);                 // 警示燈座
+  add(new THREE.SphereGeometry(6, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), headW / 2, h + 16, 0, head, beaconMat);
+  add(new THREE.CylinderGeometry(0.6, 0.6, 30, 6), headW - 4, h + 23, 8, head);             // 天線
+  TGATE.list.push({ posts, bays, head, n, fullS, rod, tailW, headW, ax, az, bx, bz, len });
+}
+const tgSpacing = (gt, t) => gt.rod + 2 + (gt.fullS - gt.rod - 2) * t;
+function teleGatePose(t) {
+  TGATE.list.forEach(gt => {
+    const s = tgSpacing(gt, t);
+    gt.posts.forEach((p, i) => { p.position.x = gt.tailW + i * s; });
+    gt.bays.forEach((b, i) => { b.g.position.x = gt.tailW + i * s + gt.rod; b.g.scale.x = Math.max(0.02, (s - gt.rod) / b.w0); });
+    gt.head.position.x = gt.tailW + gt.n * s + gt.rod + 1;
+  });
+  beaconMat.emissiveIntensity = Math.abs(t - (TGATE.closed ? 1 : 0)) > 0.002 ? 1.4 : 0.4; // 移動中警示燈較亮
+}
+function teleGateCols() {
+  TGATE.cols = [];
+  TGATE.list.forEach(gt => {
+    const reach = (gt.tailW + gt.n * tgSpacing(gt, TGATE.closed ? 1 : 0) + gt.rod + 1 + gt.headW) / gt.len;
+    TGATE.cols.push(...lineCols(gt.ax, gt.az, gt.bx, gt.bz, 22, 1, 0, Math.min(1, reach)));
+  });
+}
+function addNorthEnclosure() {
+  addFenceExt();
+  addPole();
+  const bz = fenceZ(BLUE_END_X) + 8;
+  NEW_AREA[2][1] = bz; NEW_AREA[3][1] = fenceZ(-120) + 8; NEW_AREA[4][1] = fenceZ(-10) + 8;
+  addTeleGate(BLUE_END_X, bz, POLE.x, POLE.z, 200);           // 北側紅線：門頭在藍線端
+  addTeleGate(-10, 877, POLE.x, POLE.z, 200);                 // 西側紅線：門頭在 A2 騎樓西北角柱
+  label('電動伸縮門', (POLE.x - 10) / 2, 260, 877, { size: 36, scale: 0.68 });
+  label('電動伸縮門', (POLE.x + BLUE_END_X) / 2 - 40, 260, (POLE.z + bz) / 2, { size: 36, scale: 0.68 });
+}
+
+// ============ A2 北側一樓玻璃屋（拉門＋可拖曳的橫拉窗） ============
+// 平面：東側為後牆線、南側貼 A2 北牆、西側到一樓前牆線、北側沿弧形建築線內側以直線收邊
+const GH = { P: [[-160, 0], [-275, 386], [-262, 606], [-10, 606], [-10, 0]], FL: 20, YW: 330, YO: 300 };
+const SLIDERS = [];
+function addGlassHouse() {
+  const { P, FL, YW, YO } = GH;
+  const yR = x => YO + (x + 275) / 265 * (YW - YO);      // 屋頂高度：靠牆 330 → 外側 300
+  const frame = std(0x2E3634, 0.45, { metalness: 0.5 });
+  const glass = std(0xCFE3EC, 0.05, { transparent: true, opacity: 0.25, metalness: 0.1 });
+  const g = new THREE.Group(); CUR.add(g);
+  const bar = (a, b, w = 6, h = 6, parent = g) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, A.distanceTo(B)), frame);
+    m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), B.clone().sub(A).normalize());
+    m.castShadow = true; parent.add(m); return m;
+  };
+  const quad = (pts, mat = glass, parent = g) => {           // 四點平面（立面玻璃）
+    const geo = new THREE.BufferGeometry();
+    const v = pts.flat(); geo.setAttribute('position', new THREE.Float32BufferAttribute([...v.slice(0, 9), ...v.slice(0, 3), ...v.slice(6, 12)], 3));
+    geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, mat); m.material.side = THREE.DoubleSide; parent.add(m); return m;
+  };
+  // 地坪（高 20，止滑磚）
+  const shape = new THREE.Shape(P.map(([x, z]) => new THREE.Vector2(x, -z)));
+  const fgeo = new THREE.ExtrudeGeometry(shape, { depth: FL, bevelEnabled: false });
+  fgeo.rotateX(-Math.PI / 2);
+  const uv = fgeo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 100, uv.getY(i) / 100);
+  const floor = new THREE.Mesh(fgeo, M.arcade); floor.receiveShadow = true; g.add(floor);
+  // 玻璃屋頂（依多邊形，往外洩水）＋椽條
+  const rgeo = new THREE.ShapeGeometry(shape); rgeo.rotateX(-Math.PI / 2);
+  const rp = rgeo.attributes.position; for (let i = 0; i < rp.count; i++) rp.setY(i, yR(rp.getX(i)) + 4);
+  rgeo.computeVertexNormals();
+  const roof = new THREE.Mesh(rgeo, glass); roof.material.side = THREE.DoubleSide; g.add(roof);
+  const xLeft = z => { for (let i = 0; i < 2; i++) { const [x0, z0] = P[i], [x1, z1] = P[i + 1]; if (z >= z0 && z <= z1) return x0 + (x1 - x0) * (z - z0) / (z1 - z0); } return P[0][0]; };
+  for (let z = 0; z <= 606; z += 101) { const xl = xLeft(z); bar([-10, yR(-10), z], [xl, yR(xl), z], 6, 9); }
+  // 各邊立面
+  const edge = (i) => { const a = P[i], b = P[(i + 1) % P.length]; return { a, b, len: Math.hypot(b[0] - a[0], b[1] - a[1]), dir: new THREE.Vector3(b[0] - a[0], 0, b[1] - a[1]).normalize() }; };
+  const at = (e, t) => [e.a[0] + (e.b[0] - e.a[0]) * t, e.a[1] + (e.b[1] - e.a[1]) * t];
+  function wallEdge(i, kind) {
+    const e = edge(i), A = e.a, B = e.b;
+    bar([A[0], FL + 3, A[1]], [B[0], FL + 3, B[1]], 7, 6);                          // 地檻
+    bar([A[0], yR(A[0]), A[1]], [B[0], yR(B[0]), B[1]], 7, 8);                       // 上框
+    const nb = Math.max(1, Math.round(e.len / 110));
+    for (let k = 0; k <= nb; k++) { const [x, z] = at(e, k / nb); bar([x, FL, z], [x, yR(x), z], 7, 7); } // 立柱
+    quad([[A[0], FL, A[1]], [B[0], FL, B[1]], [B[0], yR(B[0]), B[1]], [A[0], yR(A[0]), A[1]]]);
+    const n = new THREE.Vector3(-e.dir.z, 0, e.dir.x);                               // 朝外法向
+    if (kind === 'window') {                                                          // 橫拉窗：每格兩扇，可拖曳
+      bar([A[0], FL + 90, A[1]], [B[0], FL + 90, B[1]], 5, 5); bar([A[0], FL + 210, A[1]], [B[0], FL + 210, B[1]], 5, 5);
+      for (let k = 0; k < nb; k++) {
+        const bw = e.len / nb;
+        [[0, 3, 0, bw / 2], [bw / 2, -3, -bw / 2, 0]].forEach(([start, off, mn, mx]) => {
+          const [sx, sz] = at(e, (k * bw + start) / e.len);
+          addSash(sx + n.x * off, sz + n.z * off, e.dir, bw / 2 + 3, FL + 92, FL + 208, mn, mx, frame, glass, g);
+        });
+      }
+    }
+    if (kind === 'door') {                                                            // 雙扇拉門
+      const dw = Math.min(e.len - 20, 200), s0 = (e.len - dw) / 2;
+      bar([...at(e, s0 / e.len).slice(0, 1), FL + 240, at(e, s0 / e.len)[1]], [at(e, (s0 + dw) / e.len)[0], FL + 240, at(e, (s0 + dw) / e.len)[1]], 6, 6);
+      [[s0, 3, 0, dw / 2 - 6], [s0 + dw / 2, -3, -(dw / 2 - 6), 0]].forEach(([start, off, mn, mx]) => {
+        const [sx, sz] = at(e, start / e.len);
+        addSash(sx + n.x * off, sz + n.z * off, e.dir, dw / 2 + 3, FL + 2, FL + 238, mn, mx, frame, glass, g, true);
+      });
+    }
+  }
+  wallEdge(0, 'window');   // 北側（斜邊）：橫拉窗
+  wallEdge(1, 'door');     // 紅圈那一邊：拉門
+  wallEdge(2, 'window');   // 西側（朝騎樓）：橫拉窗
+  wallEdge(4, 'fixed');    // 東側（後牆線）：固定玻璃
+  // 碰撞（拉門洞依開關狀態另外計算）
+  [0, 2, 4].forEach(i => { const e = edge(i); C.colliders.push(...lineCols(e.a[0], e.a[1], e.b[0], e.b[1], 10)); });
+  const de = edge(1); GH.door = de; GH.doorCols = lineCols(de.a[0], de.a[1], de.b[0], de.b[1], 10);
+  label('玻璃屋', -140, 230, 330, { size: 44, scale: 0.78 });
+}
+function addSash(x, z, dir, w, y0, y1, mn, mx, frame, glass, parent, isDoor) {
+  const sg = new THREE.Group(); sg.position.set(x, 0, z); parent.add(sg);
+  const ang = Math.atan2(dir.z, dir.x);
+  const body = new THREE.Group(); body.rotation.y = -ang; sg.add(body);
+  const b = (x0, yy0, x1, yy1) => { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, yy1 - yy0, 4), frame); m.position.set((x0 + x1) / 2, (yy0 + yy1) / 2, 0); m.castShadow = true; m.userData.slider = SLIDERS.length; body.add(m); };
+  b(0, y0, w, y0 + 5); b(0, y1 - 5, w, y1); b(0, y0, 5, y1); b(w - 5, y0, w, y1);
+  const gm = new THREE.Mesh(new THREE.BoxGeometry(w - 10, y1 - y0 - 10, 1), glass); gm.position.set(w / 2, (y0 + y1) / 2, 0); gm.userData.slider = SLIDERS.length; body.add(gm);
+  const hx = mx > 0 ? w - 9 : 9;
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(2, isDoor ? 40 : 14, 4), frame); handle.position.set(hx, isDoor ? y0 + 105 : (y0 + y1) / 2, 2); handle.userData.slider = SLIDERS.length; body.add(handle);
+  SLIDERS.push({ obj: sg, base: new THREE.Vector3(x, 0, z), dir: dir.clone(), min: mn, max: mx, val: 0, isDoor: !!isDoor });
+}
+function doorOpenAmount() { return SLIDERS.filter(s => s.isDoor).reduce((a, s) => a + Math.abs(s.val), 0); }
+// 拖曳窗戶與拉門
+const slideDrag = { s: null, plane: null, grab: 0 };
+function sliderDown(e) {
+  setRay(e);
+  const objs = []; SLIDERS.forEach(s => objs.push(s.obj));
+  const hit = ray.intersectObjects(objs, true).find(h => h.object.userData.slider !== undefined && visibleDeep(h.object));
+  if (!hit) return false;
+  const s = SLIDERS[hit.object.userData.slider];
+  const n = new THREE.Vector3().crossVectors(s.dir, new THREE.Vector3(0, 1, 0)).normalize();
+  slideDrag.plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, s.base.clone().multiplyScalar(0.01));
+  const p = new THREE.Vector3(); if (!ray.ray.intersectPlane(slideDrag.plane, p)) return false;
+  slideDrag.s = s; slideDrag.grab = s.val - p.multiplyScalar(100).sub(s.base).dot(s.dir);
+  canvas.style.cursor = 'ew-resize';
+  return true;
+}
+function sliderMove(e) {
+  const s = slideDrag.s; if (!s) return;
+  setRay(e); const p = new THREE.Vector3(); if (!ray.ray.intersectPlane(slideDrag.plane, p)) return;
+  s.val = Math.max(s.min, Math.min(s.max, p.multiplyScalar(100).sub(s.base).dot(s.dir) + slideDrag.grab));
+  s.obj.position.copy(s.base).addScaledVector(s.dir, s.val);
+}
+function sliderUp() { if (slideDrag.s && slideDrag.s.isDoor) rebuildColliders(); slideDrag.s = null; canvas.style.cursor = ''; }
+
 // ============ 建立模型 ============
 let furnOn = true;
 function build(root, orig) {
@@ -2388,12 +2633,12 @@ function build(root, orig) {
     wall('z', 1500, 272, F1 - 10, INT, [door('D2', 327, { swing: -1 })], L1, H1, M.wallIn);
   } else {
     // A1 1F 臥室新格局：退到 z 267～470，往客廳方向加寬到 x 1410；南側外牆開 W1；房門開在前側靠玄關
-    wall('z', 1800, 55, F1 - 10, EXT, [win('W1', 310)], L1, H1);
+    wall('z', 1800, 55, F1 - 10, EXT, [win('W1', 294)], L1, H1);
     // 後牆貼緊樓梯：沿後段梯級前緣；右側梯段下方的牆只做到梯板底（約 251 cm），房內看得到樓梯底面
-    wall('x', 177, 1405, 1683, INT, [], L1, H1, M.wallIn, 'A1-1F-bed');
+    wall('x', 177, 1550, 1683, INT, [], L1, H1, M.wallIn, 'A1-1F-bed');
     wall('x', 177, 1683, 1790, INT, [], L1, 251, M.wallIn, 'A1-1F-bed');
-    wall('z', 1410, 172, 475, INT, [door('D2', 235, { swing: -1 })], L1, H1, M.wallIn, 'A1-1F-bed');
-    wall('x', 470, 1415, 1790, INT, [], L1, H1, M.wallIn, 'A1-1F-bed');
+    wall('z', 1555, 172, 415, INT, [door('D2', 235, { swing: -1 })], L1, H1, M.wallIn, 'A1-1F-bed');
+    wall('x', 410, 1560, 1790, INT, [], L1, H1, M.wallIn, 'A1-1F-bed');
   }
   [[-10, 30], [880, 920], [1770, 1810]].forEach(([a, b]) => solid(a, 0, FRONT - 40, b, L2 - SL, FRONT, M.column));
   box(-10, L2 - SL - 50, FRONT - 40, 1810, L2 - SL, FRONT, M.column); // 騎樓梁
@@ -2403,7 +2648,7 @@ function build(root, orig) {
   addShutter(ctx, 'z', 10, F1 + 10, FRONT - 40, ARC, L2 - SL - 42);
   addShutter(ctx, 'z', 1790, F1 + 10, FRONT - 40, ARC, L2 - SL - 42);
   label(orig ? '餐廳' : '中島', orig ? 380 : 260, L1 + 170, orig ? 420 : 386); label('客廳 +35', 700, L1 + 170, 400);
-  label('餐廳', 1110, L1 + 170, 420); label('客廳 +35', 1300, L1 + 170, 390); label('臥室', orig ? 1650 : 1600, L1 + 170, orig ? 430 : 320);
+  label('餐廳', 1110, L1 + 170, 420); label('客廳 +35', 1300, L1 + 170, 390); label('臥室', orig ? 1650 : 1675, L1 + 170, orig ? 430 : 290);
   if (!orig) label('玄關', 1600, L1 + 150, 540, { size: 50 });
 
   // ---- 2F ----
@@ -2498,10 +2743,11 @@ function build(root, orig) {
   skinPass(root);
   floorPass(root);
   if (!orig) {
-    CUR = floors.f1; addCanopy();
+    CUR = floors.f1; addGlassHouse();
     // 後院兩端的柵欄門：北側在 A2 北牆延長線上，南側在 A1 南牆延長線上，從後牆轉角接到圍牆
     addGate(0, fenceZ(0) + 16, -10, 200);
     addGate(1800, fenceZ(1800) + 16, 35, 200, { p0: 3, p1: 0, wallHinge: true }); // 南端小門：門軸鎖在 A1 後牆轉角，圍牆側只留扣鎖片
+    CUR = floors.f1; CUR_LV = 1; addNorthEnclosure();
     CUR = floors.f3; CUR_LV = 3; addSunroom();
     CUR = floors.roof; CUR_LV = 4;
     UNITS.forEach(({ ox, r }) => addTank(ox + 450, r + 190)); // 兩戶屋頂各一座，靠後側擺放
@@ -2591,6 +2837,8 @@ function rebuildColliders() {
   colCache = { 1: [], 2: [], 3: [] };
   main.colliders.forEach(c => { if (c.lv <= 3 && !removed.has(c.id)) colCache[c.lv].push(c); });
   if (SHUTTER.closed) SHUTTER.cols.forEach(c => colCache[1].push(c));
+  teleGateCols(); TGATE.cols.forEach(c => colCache[1].push(c));
+  if (GH.doorCols && doorOpenAmount() < 70) GH.doorCols.forEach(c => colCache[1].push(c));
 }
 rebuildColliders();
 
@@ -2707,6 +2955,7 @@ function showOverview() {
       <dt>樓層</dt><dd>1F +35・2F +395・3F +735・屋頂 +1075</dd>
       <dt>座向</dt><dd>正面朝西（依立面圖）</dd>
     </dl>
+    <p class="muted">A2 北側玻璃屋的窗戶和拉門可以直接用滑鼠或手指拖曳開關。</p>
     <p class="muted">從左側選單選一個功能開始。拖曳可以旋轉畫面，滾輪或雙指可以縮放，右鍵或雙指拖曳可以平移。</p>
 `);
 }
@@ -2803,7 +3052,7 @@ function stairZone(x, z, lv) {
 }
 function blocked(x, z, lv) {
   const R = 22;
-  if (lv === 1) { const onRoad = z > BLD_LINE && z < ROAD_Z1 - 50 && x > -700 && x < 2400; if (!onRoad && (!inPoly(x, z, LOT) || z < fenceZ(x) + 20)) return true; }
+  if (lv === 1) { const onRoad = (z > BLD_LINE || (z > 860 && x < 0)) && z < ROAD_Z1 - 50 && x > -700 && x < 2400; const inNew = inPoly(x, z, NEW_AREA); if (!onRoad && !inNew && (!inPoly(x, z, LOT) || z < fenceZ(x) + 20)) return true; if (inNew && z < fenceZ(x) + 20) return true; }
   else { if (x < 0 || x > 1800 || z < (x < 900 ? 0 : 45) || z > FRONT) return true; }
   for (const c of colCache[lv]) if (x + R > c.x0 && x - R < c.x1 && z + R > c.z0 && z - R < c.z1) return true;
   return false;
@@ -2967,14 +3216,14 @@ modes.compare = {
         <li>臥室數量由 3 間變為 2 間。</li>
       </ul>
       <p class="sec">A2 一樓</p>
-      <ul class="list"><li>北側外牆新增玻璃遮雨棚，長約 875 cm、出挑 150 cm，四角都在地界內。</li><li>後院北端（A2 後牆轉角到圍牆）新增柵欄門，高 200 cm。</li></ul>
+      <ul class="list"><li>北側空地改為一層玻璃屋（約 13.7 m²），拉門在西北側斜邊，北側與西側為可拖曳的橫拉窗。</li><li>RAV4 移到伸縮門內側、靠近電線桿處。</li><li>後院北端（A2 後牆轉角到圍牆）新增柵欄門，高 200 cm。</li><li>北側新增圍閉：圍牆往北延伸（下半磚牆、上半鐵圍欄），西北角電線桿，北側與西側各一樘硝黑電動伸縮門。</li></ul>
       <p class="sec">A2 三樓</p>
       <ul class="list"><li>A2、A1 屋頂各加一座臥式 2T 不鏽鋼水塔（含不鏽鋼底座）。</li><li>露台加裝玻璃屋：屋頂在屋頂樓板下方，北側留爬梯區並設 D5 尺寸門與百葉窗，南側為橫拉窗，所有窗戶內側都有紗網。</li></ul>
       <p class="sec">A1 一樓（後院）</p>
       <ul class="list"><li>後院南端新增小柵欄門（淨寬約 35 cm，門軸直接鎖在牆上），高 200 cm。</li><li>廚具由一字型改為 L 型，沿北牆與西牆配置，水槽移到 W1 窗下。</li><li>餐桌換成中島（含檯面 190×100 cm），附 3 張吧台椅。</li></ul>
       <p class="sec">A1 一樓</p>
       <ul class="list">
-        <li>臥室往後貼緊樓梯並往北加寬，窗戶改開在南牆靠東（W1），衣櫃收在樓梯下方。</li>
+        <li>臥室往後貼緊樓梯，北牆與西牆內縮成單人房（約 5.1 m²），窗戶改開在南牆（W1）。</li>
         <li>大門 D1 移到右前方，進門後有小玄關；臥室房門改由客廳進出（北牆靠東）。</li>
       </ul>
       <p class="muted">可以用下方工具列切換樓層和視角，兩邊會同步。</p>`);
@@ -3547,10 +3796,12 @@ canvas.addEventListener('pointerdown', e => {
   downPos = { x: e.clientX, y: e.clientY };
   const m = modes[state.mode];
   if (m && m.down && m.down(e)) { controls.enabled = false; dragging = true; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} }
+  else if (state.mode !== 'walk' && state.mode !== 'measure' && state.mode !== 'smart' && sliderDown(e)) { controls.enabled = false; dragging = 'slider'; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} }
 });
-canvas.addEventListener('pointermove', e => { const m = modes[state.mode]; if (dragging && m && m.move) m.move(e); });
+canvas.addEventListener('pointermove', e => { const m = modes[state.mode]; if (dragging === 'slider') sliderMove(e); else if (dragging && m && m.move) m.move(e); });
 canvas.addEventListener('pointerup', e => {
   const m = modes[state.mode];
+  if (dragging === 'slider') { dragging = false; controls.enabled = true; sliderUp(); downPos = null; return; }
   if (dragging) { dragging = false; controls.enabled = state.mode !== 'walk'; if (m && m.up) m.up(e); }
   if (downPos && Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) < 6 && m && m.click) m.click(e);
   downPos = null;
@@ -3562,6 +3813,13 @@ $$('[data-view]').forEach(b => b.addEventListener('click', () => { if (state.mod
 $$('[data-floor]').forEach(b => b.addEventListener('click', () => { if (state.mode === 'walk') { toast('漫遊中請走樓梯換樓層'); return; } setFloor(+b.dataset.floor); }));
 $('#tbLabels').addEventListener('click', () => { state.labels = !state.labels; applyLabelVis(); });
 $('#tbCodes').addEventListener('click', () => { state.codes = !state.codes; applyLabelVis(); });
+function setTele(closed) {
+  TGATE.closed = closed;
+  const b = $('#tbTele'); b.setAttribute('aria-pressed', String(closed)); b.textContent = closed ? '伸縮門：關' : '伸縮門：開';
+  rebuildColliders();
+  if (reduceMotion()) { TGATE.t = closed ? 1 : 0; teleGatePose(TGATE.t); }
+}
+$('#tbTele').addEventListener('click', () => setTele(!TGATE.closed));
 function setShutter(closed) {
   SHUTTER.closed = closed;
   const b = $('#tbShutter'); b.setAttribute('aria-pressed', String(closed)); b.textContent = closed ? '鐵捲門：關' : '鐵捲門：開';
@@ -3577,9 +3835,11 @@ const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 let last = performance.now();
 function loop(now) {
   requestAnimationFrame(loop);
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
   const m = modes[state.mode];
   if (m && m.update) m.update(dt);
+  const tt = TGATE.closed ? 1 : 0;
+  if (Math.abs(TGATE.t - tt) > 0.001) { TGATE.t += Math.sign(tt - TGATE.t) * Math.min(Math.abs(tt - TGATE.t), dt * 0.35); teleGatePose(TGATE.t); }
   const st = SHUTTER.closed ? 1 : 0;
   if (Math.abs(SHUTTER.t - st) > 0.001) {
     SHUTTER.t += Math.sign(st - SHUTTER.t) * Math.min(Math.abs(st - SHUTTER.t), dt * 0.45);
@@ -3608,6 +3868,7 @@ function loop(now) {
   }
 }
 [main, orig].forEach(c => shutterPose(c, SHUTTER.t));
+teleGatePose(TGATE.t);
 setFloor(4);
 showOverview();
 if (isMobile()) setDrawer(false);
@@ -3633,7 +3894,7 @@ function collectState() {
   const r2 = n => Math.round(n * 100) / 100;
   return {
     v: 1, cam: [...camera.position.toArray(), ...tgt.toArray()].map(r2), f: state.floor,
-    ext: extScheme, pal: palette, rs: rstyle, sh: SHUTTER.closed ? 1 : 0, lb: state.labels ? 1 : 0, cd: state.codes ? 1 : 0,
+    ext: extScheme, pal: palette, rs: rstyle, sh: SHUTTER.closed ? 1 : 0, tg: TGATE.closed ? 1 : 0, lb: state.labels ? 1 : 0, cd: state.codes ? 1 : 0,
     rm: [...removed], it: main.items.map(g => { const d = itemData(g); return [d.type, d.lv, d.x, d.z, d.rot]; })
   };
 }
@@ -3646,6 +3907,7 @@ function applyState(st) {
   }
   if (Array.isArray(st.it)) setItems(st.it.filter(a => Array.isArray(a) && CAT[a[0]] && [1, 2, 3].includes(a[1])).map(([type, lv, x, z, rot]) => ({ type, lv, x: +x, z: +z, rot: +rot || 0 })));
   if (st.sh === 0 || st.sh === 1) { SHUTTER.t = st.sh; setShutter(!!st.sh); [main, orig].forEach(c => shutterPose(c, SHUTTER.t)); }
+  if (st.tg === 0 || st.tg === 1) { TGATE.t = st.tg; setTele(!!st.tg); teleGatePose(TGATE.t); }
   if (st.lb === 0 || st.lb === 1) state.labels = !!st.lb;
   if (st.cd === 0 || st.cd === 1) state.codes = !!st.cd;
   if (st.rs && RSTYLES[st.rs]) { rstyle = st.rs; styleApply(); }
