@@ -134,6 +134,9 @@
   details.acc.sub .list { margin: 0 0 6px 17px; }
   details.acc > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
   @media (prefers-reduced-motion: reduce) { details.acc > summary::before { transition: none; } }
+  .cgrid { display: grid; grid-template-columns: 1fr auto auto; gap: 8px 10px; align-items: center; margin-bottom: 8px; font-size: 0.86rem; }
+  .cpair { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 0.8rem; }
+  .cgrid input[type="color"] { width: 38px; height: 26px; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: none; cursor: pointer; }
   .check-item { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; }
   .check-item .d { grid-column: 1 / -1; font-size: 0.82rem; color: var(--muted); }
   .swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
@@ -1463,25 +1466,45 @@ Object.values(SK).forEach(k => {
 });
 const SKIN = { stone: SK.stone.mat, t1545: SK.t1545.mat, nicho: SK.nicho.mat, nichoNES: SK.nichoNES.mat };
 const POMPEII = { mat: SK.pompeii.mat };
-const POMPEII_COL = { base: ['#DCCBA8', '#D8C6A2', '#DFCFAE', '#D5C39E'], vein: 'rgba(160,138,100,0.16)', grout: '#CDBD99' };
-const EXT_SCHEMES = {
-  industrial: {
-    name: '工業風', trim: 0x2F3133,
-    stone: { base: ['#5C5B57', '#63625D', '#56554F', '#605E58'], vein: 'rgba(205,202,192,0.32)', grout: '#3A3936' },
-    t1545: { base: ['#3F4042', '#46474A', '#3A3B3D', '#4B4A48'], grout: '#232323', streak: 'rgba(140,110,80,0.10)' },
-    nicho: { base: ['#7E3F2E', '#8E4B35', '#6C3627', '#9A5A40', '#834431'], grout: '#3B3834' },
-    nichoNES: { base: ['#7A7A7A', '#7F7F7F', '#757575', '#7C7C7C'], grout: '#5E5E5E' },
-    t3060: { base: ['#8E8C87', '#96948F', '#89877F', '#918F8A'], grout: '#6F6D68' }
-  },
-  modern: {
-    name: '現代簡約', trim: 0xF1EFEA,
-    stone: { base: ['#E6E3DC', '#EAE7E1', '#E1DDD5', '#ECE9E3'], vein: 'rgba(120,118,112,0.30)', grout: '#CFCBC3' },
-    t1545: { base: ['#C8C4BD', '#CFCBC4', '#C2BEB6', '#D3D0CA'], grout: '#EDEBE6', streak: 'rgba(255,255,255,0.10)' },
-    nicho: { base: ['#DCD8CF', '#D2CDC3', '#E3E0D9', '#CCC7BD'], grout: '#B9B4AA' },
-    nichoNES: { base: ['#EDE2AD', '#E8DCA5', '#F1E7B8', '#E5D9A0'], grout: '#CDBF8F' },
-    t3060: { base: ['#EDECE8', '#E8E7E2', '#F1F0EC', '#E5E4DF'], grout: '#D6D4CE' }
-  }
+// 磚面貼圖一律畫成「中性灰白」，實際顏色由材質的 color 決定（貼圖 × 顏色），所以每個分類都能自由調色
+const NEUTRAL = {
+  stone: { base: ['#E2E2E2', '#E8E8E8', '#DCDCDC', '#E5E5E5'], vein: 'rgba(255,255,255,0.55)', grout: '#9A9A9A' },
+  t1545: { base: ['#F2F2F2', '#FAFAFA', '#EAEAEA', '#F6F6F6'], grout: '#8A8A8A', streak: 'rgba(255,255,255,0.12)' },
+  nicho: { base: ['#FFFFFF', '#F0F0F0', '#E6E6E6', '#F7F7F7', '#EBEBEB'], grout: '#A0A0A0' },
+  nichoNES: { base: ['#FFFFFF', '#F0F0F0', '#E6E6E6', '#F7F7F7', '#EBEBEB'], grout: '#A0A0A0' },
+  t3060: { base: ['#F7F7F7', '#FDFDFD', '#F2F2F2', '#FAFAFA'], grout: '#C4C4C4' },
+  pompeii: { base: ['#FBFBFB', '#F6F6F6', '#FFFFFF', '#F3F3F3'], vein: 'rgba(0,0,0,0.08)', grout: '#E4E4E4' }
 };
+const skinMat = key => std(0xFFFFFF, SK[key].rough, { map: SK[key].tex, bumpMap: SK[key].bumpTex, bumpScale: SK[key].bump });
+const T1545_COL = skinMat('t1545');                       // 騎樓柱與梁（與 2F 外牆同款磚，顏色分開）
+SKIN.t1545col = T1545_COL;
+const FLOORM = { A2: skinMat('pompeii'), A1: skinMat('pompeii') };   // 室內地磚（龐貝石）
+const KITM = { A2: skinMat('t3060'), A1: skinMat('t3060') };         // 廚房三面瓷磚
+const WALLM = { A2: std(0xF4EFE6), A1: std(0xF4EFE6) };              // 室內牆面
+const TRIMM = { f1: std(0x2F3133, 0.85), f2: std(0x2F3133, 0.85) };   // 1F、2F 窗框飾條
+const COLOR_DEFS = [
+  { key: 'w23', name: '西側 2、3 樓外牆', def: '#424345' },
+  { key: 'w1', name: '西側 1 樓外牆', def: '#5E5D59' },
+  { key: 'col', name: '騎樓柱與梁', def: '#424345' },
+  { key: 'nes', name: '北、東、南外牆與圍牆', def: '#7A7A7A' },
+  { key: 'floor', name: '室內地磚', pair: true, def: '#DAC8A4' },
+  { key: 'wall', name: '室內牆面', pair: true, def: '#F4EFE6' },
+  { key: 'kit', name: '廚房三面瓷磚', pair: true, def: '#908E89' },
+  { key: 'trim', name: '窗框飾條', pair: ['1F', '2F'], def: '#2F3133' }
+];
+const COLOR_MATS = {
+  w23: [SK.t1545.mat, SK.nicho.mat], w1: [SK.stone.mat], col: [T1545_COL], nes: [SK.nichoNES.mat],
+  floorA2: [FLOORM.A2], floorA1: [FLOORM.A1], wallA2: [WALLM.A2], wallA1: [WALLM.A1], kitA2: [KITM.A2], kitA1: [KITM.A1], trim1F: [TRIMM.f1], trim2F: [TRIMM.f2]
+};
+const COLOR_DEFAULT = {};
+const pairOf = d => d.pair === true ? ['A2', 'A1'] : d.pair || null;
+COLOR_DEFS.forEach(d => { const pr = pairOf(d); if (pr) pr.forEach(u => { COLOR_DEFAULT[d.key + u] = d.def; }); else COLOR_DEFAULT[d.key] = d.def; });
+const COLORS = Object.assign({}, COLOR_DEFAULT);
+const EXT_SCHEMES = {
+  industrial: { name: '工業風', trim: 0x2F3133, bath: '#908E89', set: { w23: '#424345', w1: '#5E5D59', col: '#424345', nes: '#7A7A7A', kitA2: '#908E89', kitA1: '#908E89', trim1F: '#2F3133', trim2F: '#2F3133' } },
+  modern: { name: '現代簡約', trim: 0xF1EFEA, bath: '#ECEBE7', set: { w23: '#CBC7C0', w1: '#E6E3DC', col: '#CBC7C0', nes: '#EDE2AD', kitA2: '#ECEBE7', kitA1: '#ECEBE7', trim1F: '#F1EFEA', trim2F: '#F1EFEA' } }
+};
+function setColor(k, hex) { if (!COLOR_MATS[k] || !/^#[0-9a-fA-F]{6}$/.test(hex)) return; COLORS[k] = hex; COLOR_MATS[k].forEach(m => m.color.set(hex)); }
 let extScheme = 'industrial';
 // 以交丁（錯縫）方式排列磚塊；wrap 讓貼圖左右上下無縫接續
 function drawSkin(key, sc) {
@@ -1531,11 +1554,35 @@ function drawSkin(key, sc) {
   }
   k.tex.needsUpdate = true; k.bumpTex.needsUpdate = true;
 }
-function applyExtScheme() {
-  const sc = EXT_SCHEMES[extScheme];
-  ['stone', 't1545', 'nicho', 'nichoNES', 't3060'].forEach(key => drawSkin(key, sc[key]));
-  drawSkin('pompeii', POMPEII_COL);
+let skinsDrawn = false;
+function applyExtScheme(preset) {
+  if (!skinsDrawn) { Object.keys(NEUTRAL).forEach(key => drawSkin(key, NEUTRAL[key])); skinsDrawn = true; }
+  const sc = EXT_SCHEMES[extScheme] || EXT_SCHEMES.industrial;
+  if (preset) Object.entries(sc.set).forEach(([k, v]) => setColor(k, v));
   M.trim.color.setHex(sc.trim);
+  SK.t3060.mat.color.set(sc.bath);                       // 浴廁壁磚
+  Object.entries(COLORS).forEach(([k, v]) => setColor(k, v));
+}
+// 室內牆面：隔間牆與外牆內側，依 A2／A1 換成各自的牆面材質
+function interiorWallPass(root) {
+  const DIRS = ['px', 'nx', 'py', 'ny', 'pz', 'nz'];
+  const list = [];
+  root.traverse(o => { if (o.isMesh && o.geometry && o.geometry.type === 'BoxGeometry') list.push(o); }); // 家具在此之後才加入
+  list.forEach(o => {
+    const arr = asArray(o);
+    if (!arr.some(m => m === M.wall || m === M.wallIn)) return;
+    const gp = o.geometry.parameters, p = o.position;
+    if (p.y >= LR - 1) return;                                           // 屋頂女兒牆
+    if (p.y > L3 && p.z > ROOF_EDGE - 1) return;                         // 3F 露台女兒牆
+    let changed = false;
+    DIRS.forEach((d, i) => {
+      if (arr[i] !== M.wall && arr[i] !== M.wallIn) return;
+      const fx = d === 'px' ? p.x + gp.width / 2 : d === 'nx' ? p.x - gp.width / 2 : p.x;
+      const unit = d === 'px' ? (fx > 900 ? 'A1' : 'A2') : d === 'nx' ? (fx >= 900 ? 'A1' : 'A2') : (fx < 900 ? 'A2' : 'A1');
+      arr[i] = WALLM[unit]; changed = true;
+    });
+    if (changed) o.material = arr;
+  });
 }
 function asArray(o) { return Array.isArray(o.material) ? o.material.slice() : [0, 1, 2, 3, 4, 5].map(() => o.material); }
 // 室內各層地板（1F／2F／3F 樓板上表面）
@@ -1547,7 +1594,7 @@ function floorPass(root) {
     if (arr[2] !== M.slab) return;
     const top = o.position.y + o.geometry.parameters.height / 2;
     if (![L1, L2, L3].some(v => Math.abs(top - v) < 0.5)) return;
-    arr[2] = POMPEII.mat;
+    arr[2] = FLOORM[o.position.x < 900 ? 'A2' : 'A1'];
     worldUV(o); o.material = arr;
   });
 }
@@ -1602,7 +1649,7 @@ function skinFor(dir, b) {
     const ym = (b.y0 + b.y1) / 2;
     if (Math.abs(b.z1 - (F1 + EXT / 2)) < 1.5 && ym < L2) return 'stone';
     if (Math.abs(b.z1 - FRONT) < 1.5 && ym >= L2 - SL - 60) return 't1545';
-    if ((Math.abs(b.z1 - (F3 + EXT / 2)) < 1.5 || Math.abs(b.z1 - ROOF_EDGE) < 1.5) && ym >= L3) return 'nichoNES';
+    if ((Math.abs(b.z1 - (F3 + EXT / 2)) < 1.5 || Math.abs(b.z1 - ROOF_EDGE) < 1.5) && ym >= L3) return 'nicho';
   }
   return null;
 }
@@ -1644,7 +1691,7 @@ function skinPass(root) {
     let any = false;
     const mats = DIRS.map(d => {
       let k = null;
-      if (m === M.column) k = (d === 'py' || d === 'ny') ? null : 't1545';
+      if (m === M.column) k = (d === 'py' || d === 'ny') ? null : 't1545col';
       else if (m === M.fence) k = (d === 'py' || d === 'ny') ? null : 'nichoNES';
       else k = skinFor(d, b);
       if (k) { any = true; return SKIN[k]; }
@@ -1720,10 +1767,11 @@ function addWindow(axis, at, thick, o, y0) {
     box((o.a + o.b) / 2 - 2, b, at - 2, (o.a + o.b) / 2 + 2, t, at + 2, M.frame);
     if (o.trim) {
       const z0 = at + o.trim * thick / 2, z1 = z0 + o.trim * 6, w = 12;
-      box(o.a - w, b - w, z0, o.b + w, b, z1, M.trim);
-      box(o.a - w, t, z0, o.b + w, t + w, z1, M.trim);
-      box(o.a - w, b, z0, o.a, t, z1, M.trim);
-      box(o.b, b, z0, o.b + w, t, z1, M.trim);
+      const tm = y0 === L1 ? TRIMM.f1 : y0 === L2 ? TRIMM.f2 : M.trim;   // 1F、2F 飾條可分別調色
+      box(o.a - w, b - w, z0, o.b + w, b, z1, tm);
+      box(o.a - w, t, z0, o.b + w, t + w, z1, tm);
+      box(o.a - w, b, z0, o.a, t, z1, tm);
+      box(o.b, b, z0, o.b + w, t, z1, tm);
     }
     C.windows.push({ code: o.code, lv: CUR_LV, x: (o.a + o.b) / 2, y: (b + t) / 2, z: at, nx: 0, nz: at < 300 ? -1 : 1, w: o.b - o.a, glass });
   } else {
@@ -1799,7 +1847,8 @@ function stair(ox, r, yBase, rise, startX, nRear, nRight) {
   const step = (x0, x1, a, b, k, riser) => {
     const top = yBase + k * rise;
     const m = box(x0, Math.max(yBase, top - rise - 14), a, x1, top, b, M.stair);
-    const arr = asArray(m); arr[2] = POMPEII.mat; arr[riser] = POMPEII.mat;
+    const fm = FLOORM[ox < 900 ? 'A2' : 'A1'];
+    const arr = asArray(m); arr[2] = fm; arr[riser] = fm;
     worldUV(m); m.material = arr;
   };
   for (let k = 1; k <= nRear; k++) step(startX + (k - 1) * 22, startX + k * 22, z0, z1, k, 1);
@@ -1969,7 +2018,7 @@ function defaultItems(orig) {
     a('stool', 205, 314, 0, 1); a('stool', 260, 314, 0, 1); a('stool', 315, 314, 0, 1);
   }
   a('sofa', 582, 410, 90, 1); a('coffee', 700, 410, 90, 1); a('tv', 868, 412, -90, 1);
-  a('toilet', 60, 42, 0, 1); a('sink', 207, 36, 0, 1); a('rav4', -395, 765, 180, 1);
+  a('toilet', 60, 42, 0, 1); a('sink', 207, 36, 0, 1); a('rav4', -289, 765, 180, 1); // 車尾距騎樓北側鐵捲門約 70 cm
   a('counter', 942, 430, 90, 1);
   if (orig) {
     a('dining', 1110, 420, 90, 1);
@@ -2022,7 +2071,7 @@ function roomDefs() {
   UNITS.forEach(({ name: u, ox, r }) => {
     const bd = u === 'A2' ? 210 : 170;
     add(u + '-1F-bath', u, 1, '浴室', [[ox + 10, ox + 275, r + 10, r + bd - 5]], ['後牆 W4 高窗通風採光', '旁邊是 D6 後門，可通往後院']);
-    if (u === 'A2') { add('A2-1F-glass', 'A2', 1, '玻璃屋', [[-250, -14, 6, 600]], ['北側一層玻璃屋，地坪 +20', '紅圈那一側為雙扇拉門', '北側與西側為橫拉窗，可直接拖曳開關', '屋頂玻璃往外洩水'], true); R[R.length - 1].area = 13.7; }
+    if (u === 'A2') { add('A2-1F-glass', 'A2', 1, '玻璃屋', [[-480, -14, 6, 600]], ['北側一層玻璃屋，地坪 +20，北面延伸到半牆', '西北角切角為雙扇拉門', '北面（半牆上方）與西面為橫拉窗，可直接拖曳開關', '屋頂玻璃往北洩水'], true); R[R.length - 1].area = 26.5; }
     if (u === 'A2') add('A2-1F-main', 'A2', 1, '客餐廳', [[ox + 285, ox + 890, r + 10, 596], [ox + 10, ox + 285, r + bd + 5, 596]], ['廚房、餐廳、客廳開放相連', 'L 型廚具沿北牆與西牆，水槽在 W1 窗下', '中島兼餐桌，可坐 3 人', '正面 W1、W2 採光，W2 寬達 3 m', '大門 D1 直通騎樓，後側 L 型樓梯上二樓']);
     else {
       add('A1-1F-main', 'A1', 1, '客餐廳', [[910, 1185, 220, 596], [1185, 1550, 55, 596], [1550, 1790, 55, 172], [1550, 1790, 415, 596]], ['廚房、餐廳、客廳開放相連', '正面 W1、W1a 採光', '大門 D1 移到右前方，進門有小玄關', '後側 L 型樓梯上二樓']);
@@ -2355,26 +2404,19 @@ function lineCols(ax, az, bx, bz, thick, lv = 1, from = 0, to = 1) {
   return out;
 }
 // 1. 藍線：圍牆延伸。下半 125 cm 為磚牆（二丁掛、同原圍牆），上半用鐵圍欄補到 250 cm
-function addFenceExt() {
-  const zc = x => fenceZ(x) + 8;
-  const ax = -120, bx = BLUE_END_X, az = zc(ax), bz = zc(bx);
+// 半牆（高 125 cm，二丁掛，顏色同圍牆）
+function addHalfWall(ax, az, bx, bz, extra = 8) {
   const len = Math.hypot(bx - ax, bz - az), ang = Math.atan2(bz - az, bx - ax);
   const grp = new THREE.Group(); CUR.add(grp);
-  const wallM = new THREE.Mesh(new THREE.BoxGeometry(len + 8, 125, 15), M.fence);
-  wallM.position.set((ax + bx) / 2, 62.5, (az + bz) / 2); wallM.rotation.y = -ang; wallM.castShadow = true; wallM.receiveShadow = true; grp.add(wallM);
+  const wm = new THREE.Mesh(new THREE.BoxGeometry(len + extra, 125, 15), M.fence);
+  wm.position.set((ax + bx) / 2, 62.5, (az + bz) / 2); wm.rotation.y = -ang; wm.castShadow = true; wm.receiveShadow = true; grp.add(wm);
   skinPass(grp);
-  const st = new THREE.Group(); st.position.set(ax, 0, az); st.rotation.y = -ang; grp.add(st);
-  const b = (x0, y0, z0, x1, y1, z1) => box(x0, y0, z0, x1, y1, z1, matteBlack, st);
-  [4, len / 2, len - 4].forEach(x => b(x - 4, 125, -4, x + 4, 252, 4));         // 方柱
-  b(0, 132, -1.5, len, 136, 1.5);                                                 // 下橫桿
-  b(0, 214, -1.5, len, 218, 1.5); b(0, 228, -1.5, len, 232, 1.5);                 // 上方雙橫桿
-  for (let x = 12; x < len - 8; x += 12) {
-    if (Math.abs(x - len / 2) < 7) continue;
-    b(x - 1.2, 125, -1.2, x + 1.2, 240, 1.2);
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(2.4, 10, 4), matteBlack);   // 矛頭
-    tip.position.set(x, 245, 0); tip.rotation.y = Math.PI / 4; tip.castShadow = true; st.add(tip);
-  }
   C.colliders.push(...lineCols(ax, az, bx, bz, 16));
+}
+// 1. 藍線：圍牆延伸（半牆，已移除上方鐵欄杆），並沿北側紅線延長到一樓前牆面的延長線
+function addFenceExt() {
+  const zc = x => fenceZ(x) + 8;
+  addHalfWall(-120, zc(-120), BLUE_END_X, zc(BLUE_END_X));
 }
 // 2. 綠點：台灣巷弄常見的水泥電線桿（地上約 11 m，底部黃黑防撞反光帶）
 function addPole() {
@@ -2403,14 +2445,14 @@ function addPole() {
 const TGATE = { closed: true, t: 1, list: [], cols: [] };
 const beaconMat = std(0xF5A623, 0.3, { emissive: 0xF59E0B, emissiveIntensity: 0.6 });
 const warnMat = std(0xF2C230, 0.6);
-function addTeleGate(ax, az, bx, bz, h) {
+function addTeleGate(ax, az, bx, bz, h, opt = {}) {
   const len = Math.hypot(bx - ax, bz - az), ang = Math.atan2(bz - az, bx - ax);
   const root = new THREE.Group(); root.position.set(ax, 0, az); root.rotation.y = -ang; CUR.add(root);
   const add = (geo, px, py, pz, parent = root, mat = matteBlack) => { const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
   // 門尾：固定立柱（鎖在牆／圍牆端）
   const tailW = 14;
   add(new THREE.BoxGeometry(tailW, h + 4, 18), tailW / 2, (h + 4) / 2, 0);
-  const rod = 10, headW = 34, endGap = 24;
+  const rod = 10, headW = opt.manual ? 16 : 34, endGap = opt.manual ? 18 : 24;
   const L = len - tailW - rod - 1 - headW - endGap, n = Math.max(4, Math.round(L / 48)), fullS = L / n;
   const posts = [], bays = [];
   for (let i = 0; i <= n; i++) {
@@ -2431,8 +2473,21 @@ function addTeleGate(ax, az, bx, bz, h) {
       bays.push({ g: bg, w0 });
     }
   }
-  // 電動機頭：馬達、驅動輪、遙控接收器、警示燈
   const head = new THREE.Group(); root.add(head);
+  if (opt.manual) {
+    // 手動門頭：立柱、雙側拉手、腳輪、地栓
+    add(new THREE.BoxGeometry(headW, h + 4, 20), headW / 2, (h + 4) / 2, 0, head);
+    [-1, 1].forEach(sd => {
+      add(new THREE.CylinderGeometry(1.6, 1.6, 46, 10), headW / 2, 112, sd * 15, head);        // 拉手
+      add(new THREE.BoxGeometry(4, 3, 6), headW / 2, 90, sd * 12.5, head); add(new THREE.BoxGeometry(4, 3, 6), headW / 2, 134, sd * 12.5, head);
+      const wh = add(new THREE.CylinderGeometry(6, 6, 4, 14), headW / 2, 6, sd * 6, head, std(0x151515, 0.9)); wh.rotation.x = Math.PI / 2;
+    });
+    add(new THREE.BoxGeometry(6, 10, 6), headW / 2, h * 0.5, 11, head);                          // 門閂
+    add(new THREE.CylinderGeometry(1.2, 1.2, 40, 8), headW - 3, 30, 11, head);                   // 地栓
+    TGATE.list.push({ posts, bays, head, n, fullS, rod, tailW, headW, ax, az, bx, bz, len });
+    return;
+  }
+  // 電動機頭：馬達、驅動輪、遙控接收器、警示燈
   add(new THREE.BoxGeometry(headW, h + 8, 26), headW / 2, (h + 8) / 2, 0, head);
   add(new THREE.BoxGeometry(headW + 4, 42, 32), headW / 2, 30, 0, head);                 // 馬達箱
   [-1, 1].forEach(sd => {
@@ -2467,19 +2522,25 @@ function addNorthEnclosure() {
   addPole();
   const bz = fenceZ(BLUE_END_X) + 8;
   NEW_AREA[2][1] = bz; NEW_AREA[3][1] = fenceZ(-120) + 8; NEW_AREA[4][1] = fenceZ(-10) + 8;
-  addTeleGate(BLUE_END_X, bz, POLE.x, POLE.z, 200);           // 北側紅線：門頭在藍線端
-  addTeleGate(-10, 877, POLE.x, POLE.z, 200);                 // 西側紅線：門頭在 A2 騎樓西北角柱
+  // 北側紅線：從藍線端起做半牆，到一樓前牆外牆面（z = 616）往北水平延伸的交點為止，其餘做手動伸縮門
+  const zEnd = F1 + EXT / 2, t = (zEnd - bz) / (POLE.z - bz), xEnd = BLUE_END_X + (POLE.x - BLUE_END_X) * t;
+  addHalfWall(BLUE_END_X, bz, xEnd, zEnd, 15);
+  addTeleGate(xEnd, zEnd, POLE.x, POLE.z, 200, { manual: true });   // 門尾在半牆端，往電線桿拉
+  addTeleGate(-10, 877, POLE.x, POLE.z, 200);                       // 西側紅線：電動，門尾在 A2 騎樓西北角柱
   label('電動伸縮門', (POLE.x - 10) / 2, 260, 877, { size: 36, scale: 0.68 });
-  label('電動伸縮門', (POLE.x + BLUE_END_X) / 2 - 40, 260, (POLE.z + bz) / 2, { size: 36, scale: 0.68 });
+  label('手動伸縮門', (POLE.x + xEnd) / 2 - 40, 260, (POLE.z + zEnd) / 2, { size: 36, scale: 0.68 });
+  label('半牆 H125', (BLUE_END_X + xEnd) / 2 - 30, 190, (bz + zEnd) / 2, { size: 32, scale: 0.62 });
 }
 
 // ============ A2 北側一樓玻璃屋（拉門＋可拖曳的橫拉窗） ============
 // 平面：東側為後牆線、南側貼 A2 北牆、西側到一樓前牆線、北側沿弧形建築線內側以直線收邊
-const GH = { P: [[-160, 0], [-275, 386], [-262, 606], [-10, 606], [-10, 0]], FL: 20, YW: 330, YO: 300 };
+// 北面貼著北側半牆（沿紅線），西北角切 45° 放雙拉門，西面沿一樓前牆線
+const GH_N = z => -333 + (z + 128.6) / (877 + 128.6) * (-679 + 333);   // 北側半牆線上的 x
+const GH = { P: [[GH_N(0), 0], [GH_N(430), 430], [GH_N(430) + 176, 606], [-10, 606], [-10, 0]], FL: 20, YW: 330, YO: 300 };
 const SLIDERS = [];
 function addGlassHouse() {
   const { P, FL, YW, YO } = GH;
-  const yR = x => YO + (x + 275) / 265 * (YW - YO);      // 屋頂高度：靠牆 330 → 外側 300
+  const yR = x => YW - (-10 - x) * 0.11;                 // 屋頂高度：靠牆 330，往北 11% 洩水
   const frame = std(0x2E3634, 0.45, { metalness: 0.5 });
   const glass = std(0xCFE3EC, 0.05, { transparent: true, opacity: 0.25, metalness: 0.1 });
   const g = new THREE.Group(); CUR.add(g);
@@ -2512,21 +2573,22 @@ function addGlassHouse() {
   // 各邊立面
   const edge = (i) => { const a = P[i], b = P[(i + 1) % P.length]; return { a, b, len: Math.hypot(b[0] - a[0], b[1] - a[1]), dir: new THREE.Vector3(b[0] - a[0], 0, b[1] - a[1]).normalize() }; };
   const at = (e, t) => [e.a[0] + (e.b[0] - e.a[0]) * t, e.a[1] + (e.b[1] - e.a[1]) * t];
-  function wallEdge(i, kind) {
+  function wallEdge(i, kind, base = FL) {
     const e = edge(i), A = e.a, B = e.b;
-    bar([A[0], FL + 3, A[1]], [B[0], FL + 3, B[1]], 7, 6);                          // 地檻
+    bar([A[0], base + 3, A[1]], [B[0], base + 3, B[1]], 7, 6);                      // 地檻／半牆頂框
     bar([A[0], yR(A[0]), A[1]], [B[0], yR(B[0]), B[1]], 7, 8);                       // 上框
     const nb = Math.max(1, Math.round(e.len / 110));
-    for (let k = 0; k <= nb; k++) { const [x, z] = at(e, k / nb); bar([x, FL, z], [x, yR(x), z], 7, 7); } // 立柱
-    quad([[A[0], FL, A[1]], [B[0], FL, B[1]], [B[0], yR(B[0]), B[1]], [A[0], yR(A[0]), A[1]]]);
+    for (let k = 0; k <= nb; k++) { const [x, z] = at(e, k / nb); bar([x, base, z], [x, yR(x), z], 7, 7); } // 立柱
+    quad([[A[0], base, A[1]], [B[0], base, B[1]], [B[0], yR(B[0]), B[1]], [A[0], yR(A[0]), A[1]]]);
     const n = new THREE.Vector3(-e.dir.z, 0, e.dir.x);                               // 朝外法向
     if (kind === 'window') {                                                          // 橫拉窗：每格兩扇，可拖曳
-      bar([A[0], FL + 90, A[1]], [B[0], FL + 90, B[1]], 5, 5); bar([A[0], FL + 210, A[1]], [B[0], FL + 210, B[1]], 5, 5);
+      const wy0 = Math.max(base + 12, FL + 90), wy1 = FL + 210;
+      bar([A[0], wy0, A[1]], [B[0], wy0, B[1]], 5, 5); bar([A[0], wy1, A[1]], [B[0], wy1, B[1]], 5, 5);
       for (let k = 0; k < nb; k++) {
         const bw = e.len / nb;
         [[0, 3, 0, bw / 2], [bw / 2, -3, -bw / 2, 0]].forEach(([start, off, mn, mx]) => {
           const [sx, sz] = at(e, (k * bw + start) / e.len);
-          addSash(sx + n.x * off, sz + n.z * off, e.dir, bw / 2 + 3, FL + 92, FL + 208, mn, mx, frame, glass, g);
+          addSash(sx + n.x * off, sz + n.z * off, e.dir, bw / 2 + 3, wy0 + 2, wy1 - 2, mn, mx, frame, glass, g);
         });
       }
     }
@@ -2539,14 +2601,14 @@ function addGlassHouse() {
       });
     }
   }
-  wallEdge(0, 'window');   // 北側（斜邊）：橫拉窗
-  wallEdge(1, 'door');     // 紅圈那一邊：拉門
-  wallEdge(2, 'window');   // 西側（朝騎樓）：橫拉窗
+  wallEdge(0, 'window', 125); // 北面：立在半牆上，橫拉窗
+  wallEdge(1, 'door');        // 西北角切角：雙拉門
+  wallEdge(2, 'window');      // 西面：橫拉窗
   wallEdge(4, 'fixed');    // 東側（後牆線）：固定玻璃
   // 碰撞（拉門洞依開關狀態另外計算）
   [0, 2, 4].forEach(i => { const e = edge(i); C.colliders.push(...lineCols(e.a[0], e.a[1], e.b[0], e.b[1], 10)); });
   const de = edge(1); GH.door = de; GH.doorCols = lineCols(de.a[0], de.a[1], de.b[0], de.b[1], 10);
-  label('玻璃屋', -140, 230, 330, { size: 44, scale: 0.78 });
+  label('玻璃屋', -260, 230, 300, { size: 44, scale: 0.78 });
 }
 function addSash(x, z, dir, w, y0, y1, mn, mx, frame, glass, parent, isDoor) {
   const sg = new THREE.Group(); sg.position.set(x, 0, z); parent.add(sg);
@@ -2604,7 +2666,7 @@ function build(root, orig) {
     bathTiles(ox + 10, ox + 275, r + 10, r + bd - 5, L1, L1 + H1,
       [{ a: ox + 115, b: ox + 195, bot: L1 + 150, top: L1 + 240 }], [{ a: ox + 190, b: ox + 270, bot: L1, top: L1 + 210 }]);
     // 廚房三面壁磚，貼到梁底
-    const kt = SK.t3060.mat, ky1 = L1 + H1 - BEAM_D, kz0 = r + bd + 5;
+    const kt = KITM[ox === 0 ? 'A2' : 'A1'], ky1 = L1 + H1 - BEAM_D, kz0 = r + bd + 5;
     tilePanel('z', ox + 10, 1, kz0, F1 - 10, L1, ky1, [], kt);
     tilePanel('x', kz0, 1, ox + 10, ox + 10 + KITCHEN_W, L1, ky1, [], kt);
     const kw = (!orig && ox === 0) ? 240 : KITCHEN_W;
@@ -2623,7 +2685,7 @@ function build(root, orig) {
   wall('x', F1, -10, 1810, EXT, [
     win('W1', 230, { trim: 1 }), win('W2', 530, { trim: 1 }), door('D1', 820, { swing: -1, hinge: 'b', open: 70 }),
     win('W1', 1128, { trim: 1 }), win('W1a', 1284, { trim: 1 }),
-    ...(orig ? [door('D1', 1427, { swing: -1, hinge: 'b', open: 70 }), win('W1', 1736, { trim: 1 })] : [door('D1', 1690, { swing: -1, hinge: 'b', open: 70 })])
+    ...(orig ? [door('D1', 1427, { swing: -1, hinge: 'b', open: 70 }), win('W1', 1736, { trim: 1 })] : [door('D1', 1570, { swing: -1, hinge: 'b', open: 70 }), win('W1', 1712, { trim: 1 })])
   ], L1, H1);
   wall('z', 0, 10, F1 - 10, EXT, [], L1, H1);
   wall('z', 900, 10, F1 - 10, EXT, [], L1, H1);
@@ -2742,6 +2804,7 @@ function build(root, orig) {
 
   skinPass(root);
   floorPass(root);
+  interiorWallPass(root);
   if (!orig) {
     CUR = floors.f1; addGlassHouse();
     // 後院兩端的柵欄門：北側在 A2 北牆延長線上，南側在 A1 南牆延長線上，從後牆轉角接到圍牆
@@ -3216,7 +3279,7 @@ modes.compare = {
         <li>臥室數量由 3 間變為 2 間。</li>
       </ul>
       <p class="sec">A2 一樓</p>
-      <ul class="list"><li>北側空地改為一層玻璃屋（約 13.7 m²），拉門在西北側斜邊，北側與西側為可拖曳的橫拉窗。</li><li>RAV4 移到伸縮門內側、靠近電線桿處。</li><li>後院北端（A2 後牆轉角到圍牆）新增柵欄門，高 200 cm。</li><li>北側新增圍閉：圍牆往北延伸（下半磚牆、上半鐵圍欄），西北角電線桿，北側與西側各一樘硝黑電動伸縮門。</li></ul>
+      <ul class="list"><li>北側空地改為一層玻璃屋（約 26.5 m²），北面延伸到半牆，西北角切角設雙拉門，北面與西面為可拖曳的橫拉窗。</li><li>RAV4 移到伸縮門內側、靠近電線桿處。</li><li>後院北端（A2 後牆轉角到圍牆）新增柵欄門，高 200 cm。</li><li>北側新增圍閉：圍牆往北延伸並沿北側轉折為 H125 半牆，到一樓前牆延長線為止；其餘北側為手動伸縮門，西側為電動伸縮門，西北角立電線桿。</li></ul>
       <p class="sec">A2 三樓</p>
       <ul class="list"><li>A2、A1 屋頂各加一座臥式 2T 不鏽鋼水塔（含不鏽鋼底座）。</li><li>露台加裝玻璃屋：屋頂在屋頂樓板下方，北側留爬梯區並設 D5 尺寸門與百葉窗，南側為橫拉窗，所有窗戶內側都有紗網。</li></ul>
       <p class="sec">A1 一樓（後院）</p>
@@ -3224,7 +3287,7 @@ modes.compare = {
       <p class="sec">A1 一樓</p>
       <ul class="list">
         <li>臥室往後貼緊樓梯，北牆與西牆內縮成單人房（約 5.1 m²），窗戶改開在南牆（W1）。</li>
-        <li>大門 D1 移到右前方，進門後有小玄關；臥室房門改由客廳進出（北牆靠東）。</li>
+        <li>大門 D1 移到右前方，旁邊加一扇 W1；進門後有小玄關，臥室房門由客廳進出（北牆靠東）。</li>
       </ul>
       <p class="muted">可以用下方工具列切換樓層和視角，兩邊會同步。</p>`);
   },
@@ -3420,28 +3483,27 @@ function applyBg() {
 }
 if (darkMq.addEventListener) darkMq.addEventListener('change', applyBg);
 function stylePanel() {
+  const pick = k => `<input type="color" data-ck="${k}" value="${COLORS[k]}" aria-label="${k}">`;
   setPanel('風格', `
-    <p class="sec" style="margin-top:0">磁磚配色（外牆、浴廁、廚房）</p>
-    <div class="swatches">${Object.entries(EXT_SCHEMES).map(([k, e]) => `<button class="swatch" data-ext="${k}" aria-pressed="${k === extScheme}"><i>${[e.stone.base[0], e.t1545.base[0], e.nichoNES.base[0], e.nichoNES.base[1]].map(c => `<b style="background:${c}"></b>`).join('')}</i>${e.name}</button>`).join('')}</div>
-    <ul class="list muted" style="font-size:0.8rem;margin-bottom:6px">
-      <li>1F 西向外牆：60×60 石紋壁磚</li>
-      <li>1F 西向梁柱、2F 西向外牆到 3F 露台女兒牆：15×45 磁磚</li>
-      <li>3F 西向外牆、東向外牆與圍牆、南北側牆：二丁掛（工業風為 #7A7A7A 灰色，現代簡約為 #EDE2AD）</li>
-      <li>浴廁內牆、廚房三面（到梁底）：30×60 磁磚</li>
-      <li>室內 1F～3F 地板、樓梯踏面與踢面：米黃色龐貝石 100×100（不隨配色改變）</li>
-    </ul>
-    <div class="row"><button class="btn" id="extLook">看正面</button><button class="btn" id="extLookBack">看後側</button></div>
-    <p class="sec">室內裝潢配色</p>
-    <div class="swatches">${Object.entries(PALETTES).map(([k, p]) => `<button class="swatch" data-pal="${k}" aria-pressed="${k === palette}"><i>${['wallIn', 'wood', 'fabric', 'counter'].map(c => `<b style="background:#${p[c].toString(16).padStart(6, '0')}"></b>`).join('')}</i>${p.name}</button>`).join('')}</div>
-    <p class="muted">室內配色會改變隔間牆和家具的顏色。地板固定為龐貝石，外牆另外設定。</p>
-    <p class="sec">畫面風格</p>
-    <div class="row">${Object.entries(RSTYLES).map(([k, n]) => `<button class="btn" data-rs="${k}" aria-pressed="${k === rstyle}">${n}</button>`).join('')}</div>
-    <p class="muted">白模只保留量體和光影；藍圖用線條呈現結構；像素把畫面降成低解析度方塊。</p>`);
-  $$('[data-pal]').forEach(b => b.onclick = () => { palette = b.dataset.pal; applyPalette(); stylePanel(); });
-  $$('[data-ext]').forEach(b => b.onclick = () => { extScheme = b.dataset.ext; applyExtScheme(); stylePanel(); });
+    <p class="sec" style="margin-top:0">快速套用</p>
+    <div class="swatches">${Object.entries(EXT_SCHEMES).map(([k, e]) => `<button class="swatch" data-ext="${k}" aria-pressed="${k === extScheme}"><i>${['w1', 'w23', 'col', 'nes'].map(c => `<b style="background:${e.set[c]}"></b>`).join('')}</i>${e.name}</button>`).join('')}</div>
+    <p class="muted">快速套用會改外牆、騎樓柱、窗框飾條、廚房與浴廁磁磚的顏色，室內地磚和牆面維持你自己設定的顏色。</p>
+    <p class="sec">顏色調整</p>
+    <div class="cgrid">
+      ${COLOR_DEFS.map(d => pairOf(d)
+        ? `<span class="cname">${d.name}</span>${pairOf(d).map(u => `<label class="cpair">${u} ${pick(d.key + u)}</label>`).join('')}`
+        : `<span class="cname">${d.name}</span><span></span><label class="cpair">${pick(d.key)}</label>`).join('')}
+    </div>
+    <p class="muted">磁磚類會保留磚縫和紋理的明暗，所以看起來會比選的顏色略深一點。</p>
+    <div class="row"><button class="btn" id="colReset">全部恢復預設</button></div>
+    <p class="sec">快速檢視</p>
+    <div class="row"><button class="btn" id="extLook">看正面</button><button class="btn" id="extLookBack">看後側</button><button class="btn" id="intLook">看一樓室內</button></div>`);
+  $$('[data-ck]').forEach(inp => inp.addEventListener('input', () => setColor(inp.dataset.ck, inp.value)));
+  $$('[data-ext]').forEach(b => b.onclick = () => { extScheme = b.dataset.ext; applyExtScheme(true); stylePanel(); });
+  $('#colReset').onclick = () => { extScheme = 'industrial'; Object.entries(COLOR_DEFAULT).forEach(([k, v]) => setColor(k, v)); applyExtScheme(); stylePanel(); toast('已恢復預設顏色'); };
   $('#extLook').onclick = () => { setFloor(4); animTo(new THREE.Vector3(4, 5.5, 20 * aspectK()), new THREE.Vector3(9, 5, 8)); };
   $('#extLookBack').onclick = () => { setFloor(4); animTo(new THREE.Vector3(14, 7, -12 * aspectK()), new THREE.Vector3(9, 5, 1)); };
-  $$('[data-rs]').forEach(b => b.onclick = () => { rstyle = b.dataset.rs; styleApply(); stylePanel(); });
+  $('#intLook').onclick = () => { setFloor(1); animTo(new THREE.Vector3(9, 14 * aspectK(), 12 * aspectK()), new THREE.Vector3(9, 0.5, 3.5)); };
 }
 modes.style = { enter() { stylePanel(); } };
 applyPalette();
@@ -3894,12 +3956,13 @@ function collectState() {
   const r2 = n => Math.round(n * 100) / 100;
   return {
     v: 1, cam: [...camera.position.toArray(), ...tgt.toArray()].map(r2), f: state.floor,
-    ext: extScheme, pal: palette, rs: rstyle, sh: SHUTTER.closed ? 1 : 0, tg: TGATE.closed ? 1 : 0, lb: state.labels ? 1 : 0, cd: state.codes ? 1 : 0,
+    ext: extScheme, col: COLORS, pal: palette, rs: rstyle, sh: SHUTTER.closed ? 1 : 0, tg: TGATE.closed ? 1 : 0, lb: state.labels ? 1 : 0, cd: state.codes ? 1 : 0,
     rm: [...removed], it: main.items.map(g => { const d = itemData(g); return [d.type, d.lv, d.x, d.z, d.rot]; })
   };
 }
 function applyState(st) {
   if (st.ext && EXT_SCHEMES[st.ext]) { extScheme = st.ext; applyExtScheme(); }
+  if (st.col && typeof st.col === 'object') Object.entries(st.col).forEach(([k, v]) => setColor(k, String(v)));
   if (st.pal && PALETTES[st.pal]) { palette = st.pal; applyPalette(); }
   if (Array.isArray(st.rm)) {
     st.rm.forEach(id => { if (WALL_OPTS.some(o => o.id === id)) { removed.add(id); (main.wallGroups[id] || []).forEach(g => { g.visible = false; }); } });
